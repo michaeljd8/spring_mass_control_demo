@@ -1,13 +1,23 @@
 #!/bin/bash
 
-# Compile the PlantModel and test files
-mkdir -p build
-cd build
+# Variables
+BUILD_DIR="build"
+TEST_EXEC="plant_model_test"
+SRC_DIR="src/plant_model"
+TEST_DIR="tests"
 
-# Use g++ to compile the source and test files
-# Assuming Google Test is installed and available
-# Adjust the paths to gtest if necessary
-g++ -std=c++17 -I../src/plant_model -I/usr/include/gtest -pthread ../src/plant_model/PlantModel.cpp ../tests/PlantModelTests.cpp -lgtest -lgtest_main -o PlantModelTests
+# Create build directory if it doesn't exist
+mkdir -p $BUILD_DIR
 
-# Run the tests
-./PlantModelTests
+# Compile the test
+
+g++ -std=c++17 -I$SRC_DIR -o $BUILD_DIR/$TEST_EXEC $TEST_DIR/plant_model_test.cpp $SRC_DIR/plant_model.cpp -lgtest -lpthread
+
+# Check if compilation was successful
+if [ $? -eq 0 ]; then
+    echo "Compilation successful. Running tests..."
+    ./$BUILD_DIR/$TEST_EXEC
+else
+    echo "Compilation failed."
+    exit 1
+fi

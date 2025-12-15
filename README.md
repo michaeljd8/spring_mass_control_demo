@@ -39,13 +39,7 @@ The system must control the velocity at the cart. The controls must drive the ca
 ## Plant Model
 
 There will be a mathematical model of the plant in C++ that will simulate the behavior of the spring-mass system. The plant model will be discrete-time and will run at a fixed time step. The plant model will take in the control velocity as an input and output the cart velocity and position.
-The plant model will include the following features:
-- Spring force calculation
-- Mass acceleration calculation
-- Coulomb friction model
-- Discrete-time integration
-- Configurable mass and spring constant
-- Output of cart velocity and position
+
 
 ### Testing Harness
 
