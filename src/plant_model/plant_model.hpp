@@ -56,15 +56,6 @@ public:
     void update(double x_in, double x_in_dot, double dt);
 
     /**
-     * Update using 4th-order Runge-Kutta integration (more accurate)
-     * 
-     * @param x_in Input displacement (m)
-     * @param x_in_dot Input velocity (m/s)
-     * @param dt Time step (s)
-     */
-    void update_rk4(double x_in, double x_in_dot, double dt);
-
-    /**
      * Get current position
      */
     double get_position() const;
