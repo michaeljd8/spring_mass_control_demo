@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 # Read the CSV file
 # Updated to use simulation_data.csv
-data = pd.read_csv("simulation_data.csv")
+data = pd.read_csv("build/simulation_data.csv")
 
 # Plot Position and Velocity
 plt.figure(figsize=(10, 6))
@@ -20,6 +20,4 @@ plt.ylabel("Values")
 plt.legend()
 plt.grid()
 
-# Save the plot
-plt.savefig("velocity_plot.png")
 plt.show()

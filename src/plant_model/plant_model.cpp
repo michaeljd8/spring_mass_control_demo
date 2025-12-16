@@ -32,32 +32,6 @@ void PlantModel::update(double x_in, double x_in_dot, double dt) {
     position += velocity * dt;
 }
 
-void PlantModel::update_rk4(double x_in, double x_in_dot, double dt) {
-    double x0 = position;
-    double v0 = velocity;
-
-    double a1 = compute_acceleration(x_in, x_in_dot);
-    double v1 = velocity;
-
-    position = x0 + v1 * dt / 2;
-    velocity = v0 + a1 * dt / 2;
-    double a2 = compute_acceleration(x_in, x_in_dot);
-    double v2 = velocity;
-
-    position = x0 + v2 * dt / 2;
-    velocity = v0 + a2 * dt / 2;
-    double a3 = compute_acceleration(x_in, x_in_dot);
-    double v3 = velocity;
-
-    position = x0 + v3 * dt;
-    velocity = v0 + a3 * dt;
-    double a4 = compute_acceleration(x_in, x_in_dot);
-    double v4 = velocity;
-
-    position = x0 + (v1 + 2 * v2 + 2 * v3 + v4) * dt / 6;
-    velocity = v0 + (a1 + 2 * a2 + 2 * a3 + a4) * dt / 6;
-}
-
 double PlantModel::get_position() const {
     return position;
 }

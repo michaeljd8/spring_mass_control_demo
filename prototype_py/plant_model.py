@@ -85,5 +85,4 @@ if __name__ == "__main__":
     ax2.grid(True)
     
     plt.tight_layout()
-    plt.savefig('step_response.png', dpi=150)
     plt.show()
