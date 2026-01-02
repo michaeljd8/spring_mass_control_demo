@@ -14,8 +14,8 @@ double PlantModel::compute_acceleration(double x_in, double x_in_dot) const {
     double spring_force = spring_constant * (x_in - position);
     double damper_force = damping * (x_in_dot - velocity);
     double viscous_force = -viscous_friction * velocity;
-
     double coulomb_force;
+    
     if (std::abs(velocity) > 1e-6) {
         coulomb_force = -coulomb_friction * sign(velocity);
     } else {

@@ -25,7 +25,7 @@ C++ object-oriented programming principles will be used to create the plant mode
 
 ## Controls
 
-The system must control the velocity at the cart. The controls must drive the cart at a user-defined target velocity at a target distance while minimizing the time to reach the two parameters. Therefore, the challenge of the system is to travel as fast as possible to the target distance while being able to slow down to the target velocity while staying in control of the motion at the end of the spring.
+The system must control the velocity at the cart. The controls must drive the cart at a user-defined target velocity at a target distance while minimizing
 
 ### Requirements
 
@@ -43,9 +43,56 @@ There will be a mathematical model of the plant in C++ that will simulate the be
 
 ### Testing Harness
 
-A testing harness will be created to test the plant model and controls. The testing harness will allow for the following:
+Testing harnesses will be created to test the plant model and controls. The testing harness will allow for the following:
 - Configuration of target velocity and distance
 - Configuration of mass
 - Running the simulation for a fixed time
 - Output of results for analysis
 - Basic visualization of the drive velocity and cart velocity over time
+
+## Model in Loop (MIL) Level 1
+
+The MIL Level 1 test will integrate the systems ability to calculate the velocity path and use a PID controller to set the drive velocity based on the user defined inputs. All other aspects of the system will be part of the plant model for Level 1.
+
+### Classes:
+
+- spring mass control demo
+- plant model
+- testing harness
+
+### **Methods:**
+- Calculate velocity path
+- PID controller
+- set target velocity
+- set target distance
+- set travel velocity
+- set approach distance
+- set acceleration
+- set deceleration
+
+### **Fields:**
+- **target velocity:** The desired velocity at the cart when the target distance is reached.
+- **target distance:** The position the cart much reach the target velocity within the defined tolerance.
+- **travel velocity:** User defined velocity to travel to the target distance.
+- **approach distance:** The distance at which the target velocity will be reached.
+- **acceleration:** User defined acceleration to reach the travel velocity.
+- **deceleration:** User defined deceleration to reach the target velocity at the target distance.
+- **max velocity:** Max velocity the system is capable of reaching.
+- **min velocity:** Min velocity the system is capable of running reliably. 
+
+## Flow Diagram
+
+```mermaid
+flowchart TD
+    subgraph testing harness
+        A[START] --> B[Initialize Class Objects]
+        B --> C[Run Simulation] 
+    end
+    subgraph spring mass control demo
+        B --> D[Calculate Velocity Path]
+        C --> E[PID Controller]
+    end
+    subgraph plant model
+        E -->|drive velocity| F[Cart Velocity Simulation]
+                F -->|cart velocity sim| E
+    end

@@ -2,7 +2,7 @@
 
 # Variables
 BUILD_DIR="build"
-TEST_EXEC="plant_model_test"
+TEST_EXEC="plant_model_unit"
 SRC_DIR="src/plant_model"
 TEST_DIR="tests"
 
@@ -11,7 +11,7 @@ mkdir -p $BUILD_DIR
 
 # Compile the test
 
-g++ -std=c++17 -I$SRC_DIR -o $BUILD_DIR/$TEST_EXEC $TEST_DIR/plant_model_test.cpp $SRC_DIR/plant_model.cpp -lgtest -lpthread
+g++ -std=c++17 -I$SRC_DIR -o $BUILD_DIR/$TEST_EXEC $TEST_DIR/plant_model_unit.cpp $SRC_DIR/plant_model.cpp -lgtest -lpthread
 
 # Check if compilation was successful
 if [ $? -eq 0 ]; then
