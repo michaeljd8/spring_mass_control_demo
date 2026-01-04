@@ -1,4 +1,4 @@
-#include "plant_model.hpp"
+#include "PlantModel.hpp"
 #include <cmath>
 #include <algorithm>
 

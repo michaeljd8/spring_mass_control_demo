@@ -1,4 +1,4 @@
-#include "../plant_model/plant_model.hpp"
+#include "../PlantModel/PlantModel.hpp"
 #include <gtest/gtest.h>
 #include <fstream> // For file output
 #include <vector>

@@ -8,8 +8,8 @@ Output: position of the mass
 Equation: m * x_ddot + c * x_dot + k * x = k * x_in + c * x_in_dot
 */
 
-#ifndef PLANT_MODEL_HPP
-#define PLANT_MODEL_HPP
+#ifndef PLANTMODEL_HPP
+#define PLANTMODEL_HPP
 
 #include <cmath>
 #include <algorithm>
@@ -54,4 +54,4 @@ private:
     static double sign(double x);
 };
 
-#endif // PLANT_MODEL_HPP
+#endif // PLANTMODEL_HPP
