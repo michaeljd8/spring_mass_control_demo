@@ -1,4 +1,4 @@
-/**
+/*
 Spring-Mass System Simulation
 
 Simulates a spring-mass-damper system with friction.
