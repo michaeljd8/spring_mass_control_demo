@@ -15,11 +15,12 @@ protected:
 
     // Helper function to save simulation data to CSV
     void save_to_csv(const std::string& filename, const std::vector<double>& time,
+                     const std::vector<double>& drive_velocity,
                      const std::vector<double>& position, const std::vector<double>& velocity) {
         std::ofstream file(filename);
-        file << "time,position,velocity\n";
+        file << "time,drive_velocity,mass_position,mass_velocity\n";
         for (size_t i = 0; i < time.size(); ++i) {
-            file << time[i] << "," << position[i] << "," << velocity[i] << "\n";
+            file << time[i] << "," << drive_velocity[i] << "," << position[i] << "," << velocity[i] << "\n";
         }
         file.close();
     }
@@ -62,35 +63,14 @@ TEST_F(PlantModelTest, FrictionEffects) {
 
 // Test to save simulation data (time, position, velocity) to a CSV file for plotting
 TEST_F(PlantModelTest, SaveSimulationData) {
-    double drive_velocity = 1.0;
+    double constant_velocity = 1.0;
     double dt = 0.01;
     int steps = 1000;
 
     plant.reset(0.0, 0.0);
 
-    std::vector<double> time;
-    std::vector<double> position;
-    std::vector<double> velocity;
-
-    for (int i = 0; i < steps; ++i) {
-        double t = i * dt;
-        time.push_back(t);
-        position.push_back(plant.get_position());
-        velocity.push_back(plant.get_velocity());
-        plant.update(drive_velocity, dt);
-    }
-
-    save_to_csv("build/simulation_data.csv", time, position, velocity);
-    SUCCEED(); // Ensure the test passes
-}
-
-// Test constant velocity effect
-TEST_F(PlantModelTest, ConstantVelocity) {
-    double constant_velocity = 1.0; // Constant velocity input
-    double dt = 0.1;
-    int steps = 10;
-
-    plant.reset(0.0, 0.0);
+    // Compute velocity profile
+    std::vector<double> drive_velocity(steps, constant_velocity);
 
     std::vector<double> time;
     std::vector<double> position;
@@ -104,8 +84,35 @@ TEST_F(PlantModelTest, ConstantVelocity) {
         plant.update(constant_velocity, dt);
     }
 
+    save_to_csv("build/simulation_data.csv", time, drive_velocity, position, velocity);
+    SUCCEED(); // Ensure the test passes
+}
+
+// Test acceleration to a constant velocity
+TEST_F(PlantModelTest, ConstantVelocity) {
+    double dt = 0.1;
+    int sim_time = 10;
+
+    plant.reset(0.0, 0.0);
+
+    // Compute velocity profile
+    double constant_velocity = 1.0; // Constant velocity input
+    std::vector<double> drive_velocity(sim_time, constant_velocity);
+
+    std::vector<double> time;
+    std::vector<double> position;
+    std::vector<double> velocity;
+
+    for (int i = 0; i < sim_time; ++i) {
+        double t = i * dt;
+        time.push_back(t);
+        position.push_back(plant.get_position());
+        velocity.push_back(plant.get_velocity());
+        plant.update(constant_velocity, dt);
+    }
+
     // Save the data for visualization
-    save_to_csv("build/constant_velocity_data.csv", time, position, velocity);
+    save_to_csv("build/constant_velocity_data.csv", time, drive_velocity, position, velocity);
 }
 
 int main(int argc, char **argv) {

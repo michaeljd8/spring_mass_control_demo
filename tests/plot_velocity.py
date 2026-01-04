@@ -8,16 +8,30 @@ import matplotlib.pyplot as plt
 # Updated to use simulation_data.csv
 data = pd.read_csv("build/simulation_data.csv")
 
-# Plot Position and Velocity
-plt.figure(figsize=(10, 6))
-plt.plot(data["time"], data["position"], label="Position", linestyle="--")
-plt.plot(data["time"], data["velocity"], label="Velocity")
+# Columns: time, drive_velocity, mass_position, mass_velocity
+time = data['time']
+drive_velocity = data['drive_velocity']
+mass_position = data['mass_position']
+mass_velocity = data['mass_velocity']
 
-# Add labels and legend
-plt.title("Position and Velocity vs Time")
-plt.xlabel("Time (s)")
-plt.ylabel("Values")
-plt.legend()
+# Create the plots
+plt.figure(figsize=(12, 8))
+plt.subplot(2, 1, 1)
+plt.plot(time, drive_velocity, label='Drive Velocity', color='blue', marker='o')
+plt.plot(time, mass_velocity, label='Mass Velocity', color='green', marker='x')
+plt.title('Velocities vs Time')
+plt.xlabel('Time (s)')
+plt.ylabel('Velocity (m/s)')
 plt.grid()
+plt.legend()
 
+plt.subplot(2, 1, 2)
+plt.plot(time, mass_position, label='Mass Position', color='orange', marker='s')
+plt.title('Mass Position vs Time')
+plt.xlabel('Time (s)')
+plt.ylabel('Mass Position (m)')
+plt.grid()
+plt.legend()
+
+plt.tight_layout()
 plt.show()
