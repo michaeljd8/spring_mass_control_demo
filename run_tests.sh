@@ -3,7 +3,7 @@
 # Variables
 BUILD_DIR="build"
 TEST_EXEC="plant_model_test"
-SRC_DIR="src/plant_model"
+SRC_DIR="plant_model"
 TEST_DIR="tests"
 
 # Clean previous build
