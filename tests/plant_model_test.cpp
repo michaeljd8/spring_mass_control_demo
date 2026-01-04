@@ -90,29 +90,41 @@ TEST_F(PlantModelTest, SaveSimulationData) {
 
 // Test acceleration to a constant velocity
 TEST_F(PlantModelTest, ConstantVelocity) {
-    double dt = 0.1;
-    int sim_time = 10;
+    double dt = 0.01;
+    int steps = 1000;
 
     plant.reset(0.0, 0.0);
 
     // Compute velocity profile
     double constant_velocity = 1.0; // Constant velocity input
-    std::vector<double> drive_velocity(sim_time, constant_velocity);
+    double acceleration_time = 5.0; // Time to reach constant velocity
+    double acceleration = constant_velocity / acceleration_time;
+    
+    std::vector<double> drive_velocity;
+    for (int i = 0; i < steps; ++i) {
+        double t = i * dt;
+        if (t < acceleration_time) {
+            drive_velocity.push_back(acceleration * t); // Ramp-up phase
+        } else {
+            drive_velocity.push_back(constant_velocity); // Constant velocity phase
+        }
+    }
 
     std::vector<double> time;
     std::vector<double> position;
     std::vector<double> velocity;
 
-    for (int i = 0; i < sim_time; ++i) {
+    for (int i = 0; i < steps; ++i) {
         double t = i * dt;
         time.push_back(t);
         position.push_back(plant.get_position());
         velocity.push_back(plant.get_velocity());
-        plant.update(constant_velocity, dt);
+        plant.update(drive_velocity[i], dt);
     }
 
     // Save the data for visualization
-    save_to_csv("build/constant_velocity_data.csv", time, drive_velocity, position, velocity);
+    save_to_csv("build/velocity_data.csv", time, drive_velocity, position, velocity);
+
 }
 
 int main(int argc, char **argv) {

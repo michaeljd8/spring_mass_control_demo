@@ -6,11 +6,13 @@ TEST_EXEC="plant_model_test"
 SRC_DIR="src/plant_model"
 TEST_DIR="tests"
 
+# Clean previous build
+rm -rf $BUILD_DIR
+
 # Create build directory if it doesn't exist
 mkdir -p $BUILD_DIR
 
 # Compile the test
-
 g++ -std=c++17 -I$SRC_DIR -o $BUILD_DIR/$TEST_EXEC $TEST_DIR/plant_model_test.cpp $SRC_DIR/plant_model.cpp -lgtest -lpthread
 
 # Check if compilation was successful
