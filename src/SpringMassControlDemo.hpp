@@ -6,6 +6,8 @@ It will create a desired velocity profile based on user inputs and apply a close
 #ifndef SPRINGMASSCONTROLDEMO_HPP
 #define SPRINGMASSCONTROLDEMO_HPP
 
+#include <vector>
+
 class SpringMassControlDemo {
 public:
     // Constructor with default parameters
@@ -41,12 +43,28 @@ public:
     double get_acceleration() const;
     double get_deceleration() const;
 
+    // Getters for System Parameters
+    static constexpr double get_max_velocity() { return MAX_VELOCITY; }
+    static constexpr double get_min_velocity() { return MIN_VELOCITY; }
+    static constexpr double get_max_acceleration() { return MAX_ACCELERATION; }
+    static constexpr double get_min_acceleration() { return MIN_ACCELERATION; }
+    static constexpr double get_max_deceleration() { return MAX_DECELERATION; }
+    static constexpr double get_min_deceleration() { return MIN_DECELERATION; }
+    static constexpr double get_max_distance() { return MAX_DISTANCE; }
+    static constexpr double get_min_distance() { return MIN_DISTANCE; }
+    static constexpr double get_sampling_time() { return SAMPLING_TIME; }
+
     // Getters for Internal State Variables - Used for monitoring and graphing
     double get_control_velocity() const;
     double get_drive_position() const;
     double get_drive_velocity() const;
     double get_mass_position() const;
     double get_mass_velocity() const;
+
+    // Getter for Velocity Profile
+    const std::vector<double>& get_velocity_profile() const {
+        return velocity_profile_;
+    }
 
     virtual ~SpringMassControlDemo() = default;
 
@@ -68,6 +86,9 @@ private:
     double mass_position_; // Measured mass position (mm)
     double mass_velocity_; // Calculated from mass_position_ (mm/s)
 
+    // Velocity Profile
+    std::vector<double> velocity_profile_;
+
     // System Parameters
     static constexpr double MAX_VELOCITY = 100.0; // Maximum allowable velocity (mm/s)
     static constexpr double MIN_VELOCITY = 10.0;  // Minimum allowable velocity (mm/s)
@@ -80,6 +101,8 @@ private:
     static constexpr double JERK = 1000.0;            // Jerk is fixed at 1000 mm/s^3 for S-curve profiles
     static constexpr double SAMPLING_TIME = 0.001;    // Sampling time for control loop (s)
 
+    // Helper function for calculating the distance of an S-curve profile
+    double s_curve_distance(double initial_velocity, double final_velocity, double acceleration, double jerk);
 };
 
 #endif // SPRINGMASSCONTROLDEMO_HPP

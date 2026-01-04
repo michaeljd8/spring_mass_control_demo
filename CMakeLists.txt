@@ -52,3 +52,23 @@ add_custom_target(build_and_run_getters_setters_unit
     COMMAND $<TARGET_FILE:getters_setters_unit>
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
+
+# Add the executable for the velocity profile test
+add_executable(test_velocity_profile tests/test_velocity_profile.cpp src/SpringMassControlDemo.cpp)
+
+# Link libraries for the velocity profile test
+target_link_libraries(test_velocity_profile GTest::GTest GTest::Main Threads::Threads)
+
+# Add a custom target to run the velocity profile test
+add_custom_target(run_velocity_profile_test
+    COMMAND $<TARGET_FILE:test_velocity_profile>
+    DEPENDS test_velocity_profile
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+)
+
+# Add a custom target to build and run the velocity profile test
+add_custom_target(build_and_run_velocity_profile_test
+    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target test_velocity_profile
+    COMMAND $<TARGET_FILE:test_velocity_profile>
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+)
