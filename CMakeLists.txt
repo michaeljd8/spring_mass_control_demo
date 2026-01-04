@@ -28,7 +28,7 @@ add_custom_target(run_tests
 )
 
 # Add a custom target to run the Python visualization script
-add_custom_target(plot_velocity
-    COMMAND ${CMAKE_COMMAND} -E env python3 tests/plot_velocity.py
+add_custom_target(plot_plant_test
+    COMMAND ${CMAKE_COMMAND} -E env python3 tests/plant_model_test_vis.py
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
