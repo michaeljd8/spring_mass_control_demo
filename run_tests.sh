@@ -21,3 +21,6 @@ else
     echo "Compilation failed."
     exit 1
 fi
+
+# Run visualization script
+python3 tests/plot_velocity.py
