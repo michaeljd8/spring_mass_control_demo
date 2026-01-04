@@ -48,7 +48,7 @@ private:
     double mass_velocity;          // Mass velocity x_dot (m/s)
 
     // Compute acceleration given current state and input
-    double compute_acceleration(double x_in, double x_in_dot) const;
+    double compute_acceleration(double drive_position, double drive_velocity) const;
 
     // Helper function to determine the sign of a value
     static double sign(double x);
