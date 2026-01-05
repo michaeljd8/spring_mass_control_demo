@@ -2,19 +2,17 @@
 #include <iostream>
 
 SpringMassControlDemo::SpringMassControlDemo(double final_velocity,
-                                             double target_distance,
+                                             double approach_distance,
                                              double final_distance,
                                              double approach_offset,
                                              double travel_velocity,
-                                             double acceleration,
-                                             double deceleration)
+                                             double acceleration)
     : final_velocity_(final_velocity),
-      target_distance_(target_distance),
+      approach_distance_(approach_distance),
       final_distance_(final_distance),
       approach_offset_(approach_offset),
       travel_velocity_(travel_velocity),
       acceleration_(acceleration),
-      deceleration_(deceleration),
       control_velocity_(0.0),
       drive_position_(0.0),
       drive_velocity_(0.0),
@@ -34,7 +32,7 @@ double SpringMassControlDemo::s_curve_distance(double initial_velocity, double f
     double constant_accel_distance = (travel_velocity_ * travel_velocity_) / (2.0 * acceleration_); // Distance during constant acceleration
 
     double s_curve_distance = 2.0 * jerk_distance + constant_accel_distance; // Total distance including jerk
-    return s_curve_distance;
+    return s_curve_distance, jerk_distance;
 
 }
 
@@ -45,45 +43,24 @@ void SpringMassControlDemo::create_velocity_profile() {
     velocity_profile_.clear();
 
     // Calculate the total time for the velocity profile
-    double total_distance = target_distance_ - approach_offset_;
-    double accel_to_max_dist = s_curve_distance(0.0, travel_velocity_, acceleration_, JERK);
-    double decel_to_final_dist = s_curve_distance(travel_velocity_, final_velocity_, deceleration_, JERK);
+    double total_distance = approach_distance_ - approach_offset_;
+    double accel_to_max_dist, jerk_accel_dist = s_curve_distance(0.0, travel_velocity_, acceleration_, JERK);
+    double decel_to_final_dist, jerk_decel_dist = s_curve_distance(travel_velocity_, final_velocity_, acceleration_, JERK);
 
     // Check for triangular profile condition
     if (total_distance < (accel_to_max_dist + decel_to_final_dist)) {
         std::cerr << "Warning: Triangular profile detected. Adjusting travel velocity." << std::endl;
         travel_velocity_ = total_distance / (accel_to_max_dist + decel_to_final_dist) * travel_velocity_;
         accel_to_max_dist = s_curve_distance(0.0, travel_velocity_, acceleration_, JERK);
-        decel_to_final_dist = s_curve_distance(travel_velocity_, final_velocity_, deceleration_, JERK);
+        decel_to_final_dist = s_curve_distance(travel_velocity_, final_velocity_, acceleration_, JERK);
     }
 
-    double accel_time = travel_velocity_ / acceleration_;
-    double decel_time = travel_velocity_ / deceleration_;
-    double constant_velocity_time = (total_distance - accel_to_max_dist - decel_to_final_dist) / travel_velocity_;
-
-    // Generate the velocity profile
-    double current_time = 0.0;
-    double current_velocity = 0.0;
-
-    // Acceleration phase
-    while (current_time < accel_time) {
-        current_velocity = current_time * acceleration_;
-        velocity_profile_.push_back(current_velocity);
-        current_time += SAMPLING_TIME;
+    // DEBUG populate with dummy values for now
+    int num_samples = static_cast<int>((total_distance / travel_velocity_) / SAMPLING_TIME);
+    for (int i = 0; i < num_samples; ++i) {
+        velocity_profile_.push_back(10.0);
     }
 
-    // Constant velocity phase
-    while (current_time < (accel_time + constant_velocity_time)) {
-        velocity_profile_.push_back(travel_velocity_);
-        current_time += SAMPLING_TIME;
-    }
-
-    // Deceleration phase
-    while (current_time < (accel_time + constant_velocity_time + decel_time)) {
-        current_velocity = travel_velocity_ - ((current_time - accel_time - constant_velocity_time) * deceleration_);
-        velocity_profile_.push_back(current_velocity);
-        current_time += SAMPLING_TIME;
-    }
 }
 
 // Closed Loop Control based on current mass position and velocity
@@ -104,15 +81,15 @@ void SpringMassControlDemo::set_final_velocity(double final_velocity) {
     }
 }
 
-void SpringMassControlDemo::set_target_distance(double target_distance) {
-    if (target_distance < MIN_DISTANCE) {
-        target_distance_ = MIN_DISTANCE;
-        std::cerr << "Out of Bounds: Target distance set to minimum limit." << std::endl;
-    } else if (target_distance > MAX_DISTANCE) {
-        target_distance_ = MAX_DISTANCE;
-        std::cerr << "Out of Bounds: Target distance set to maximum limit." << std::endl;
+void SpringMassControlDemo::set_approach_distance(double approach_distance) {
+    if (approach_distance < MIN_DISTANCE) {
+        approach_distance_ = MIN_DISTANCE;
+        std::cerr << "Out of Bounds: Approach distance set to minimum limit." << std::endl;
+    } else if (approach_distance > MAX_DISTANCE) {
+        approach_distance_ = MAX_DISTANCE;
+        std::cerr << "Out of Bounds: Approach distance set to maximum limit." << std::endl;
     } else {
-        target_distance_ = target_distance;
+        approach_distance_ = approach_distance;
     }
 }
 
@@ -132,8 +109,8 @@ void SpringMassControlDemo::set_approach_offset(double approach_offset) {
     if (approach_offset < 0.0) {
         approach_offset_ = 0.0;
         std::cerr << "Out of Bounds: Approach offset set to minimum limit of 0." << std::endl;
-    } else if (approach_offset > target_distance_) {
-        approach_offset_ = target_distance_;
+    } else if (approach_offset > approach_distance_) {
+        approach_offset_ = approach_distance_;
         std::cerr << "Out of Bounds: Approach offset set to target distance limit." << std::endl;
     } else {
         approach_offset_ = approach_offset;
@@ -164,24 +141,21 @@ void SpringMassControlDemo::set_acceleration(double acceleration) {
     }
 }
 
-void SpringMassControlDemo::set_deceleration(double deceleration) {
-    if (deceleration < MIN_DECELERATION) {
-        deceleration_ = MIN_DECELERATION;
-        std::cerr << "Out of Bounds: Deceleration set to minimum limit." << std::endl;
-    } else if (deceleration > MAX_DECELERATION) {
-        deceleration_ = MAX_DECELERATION;
-        std::cerr << "Out of Bounds: Deceleration set to maximum limit." << std::endl;
+void SpringMassControlDemo::set_target_distance(double target_distance) {
+    if (target_distance < MIN_DISTANCE) {
+        approach_distance_ = MIN_DISTANCE;
+        std::cerr << "Out of Bounds: Target distance set to minimum limit." << std::endl;
+    } else if (target_distance > MAX_DISTANCE) {
+        approach_distance_ = MAX_DISTANCE;
+        std::cerr << "Out of Bounds: Target distance set to maximum limit." << std::endl;
     } else {
-        deceleration_ = deceleration;
+        approach_distance_ = target_distance;
     }
 }
 
 // Getters for User Defined Parameters
-double SpringMassControlDemo::get_final_velocity() const {
-    return final_velocity_;
-}
-double SpringMassControlDemo::get_target_distance() const {
-    return target_distance_;
+double SpringMassControlDemo::get_approach_distance() const {
+    return approach_distance_;
 }
 double SpringMassControlDemo::get_final_distance() const {
     return final_distance_;
@@ -195,9 +169,13 @@ double SpringMassControlDemo::get_travel_velocity() const {
 double SpringMassControlDemo::get_acceleration() const {
     return acceleration_;
 }
-double SpringMassControlDemo::get_deceleration() const {
-    return deceleration_;
+double SpringMassControlDemo::get_final_velocity() const {
+    return final_velocity_;
 }
+double SpringMassControlDemo::get_target_distance() const {
+    return approach_distance_;
+}
+
 
 // Getters for Internal State Variables - Used for monitoring and graphing
 double SpringMassControlDemo::get_control_velocity() const {

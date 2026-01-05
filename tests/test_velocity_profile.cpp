@@ -1,59 +1,44 @@
+#include <gtest/gtest.h>
 #include "../src/SpringMassControlDemo.hpp"
-#include <iostream>
-#include <cassert>
 #include <fstream>
 
-void test_velocity_profile() {
-    // Create an object of SpringMassControlDemo with custom parameters
-    SpringMassControlDemo demo(20.0, 100.0, 120.0, 10.0, 50.0, 300.0, 300.0);
+TEST(SpringMassControlDemoTest, VelocityProfileGeneration) {
+    // Initialize parameters for the test
+    double final_velocity = 2.0;
+    double approach_distance = 10.0;
+    double final_distance = 1.0;
+    double approach_offset = 1.0;
+    double travel_velocity = 5.0;
+    double acceleration = 2.0;
 
-    // Retrieve the velocity profile
+    // Create an instance of SpringMassControlDemo
+    SpringMassControlDemo demo(final_velocity, approach_distance, final_distance, approach_offset, travel_velocity, acceleration);
+
+    // Call the method to generate the velocity profile
+    demo.create_velocity_profile();
+
+    // Helper function to save the velocity profile to a file (for debugging purposes)
+    auto save_velocity_profile_to_file = [](const std::vector<double>& profile, const std::string& filename) {
+        std::ofstream file(filename);
+        if (file.is_open()) {
+            for (double velocity : profile) {
+                file << velocity << "\n";
+            }
+            file.close();
+        }
+    };
+
+
+
+    // Retrieve the generated velocity profile
     const std::vector<double>& velocity_profile = demo.get_velocity_profile();
 
-        // Retrieve the SAMPLING_TIME constant
-    double sampling_time = SpringMassControlDemo::get_sampling_time();
+    save_velocity_profile_to_file(velocity_profile, "velocity_profile.csv");
 
-    // Save the velocity profile to a CSV file
-    std::ofstream csv_file("velocity_profile.csv");
-    if (csv_file.is_open()) {
-        csv_file << "Time,Velocity\n";
-        double time = 0.0;
-        for (double velocity : velocity_profile) {
-            csv_file << time << "," << velocity << "\n";
-            time += sampling_time;
-        }
-        csv_file.close();
-        std::cout << "Velocity profile saved to velocity_profile.csv.\n";
-    } else {
-        std::cerr << "Failed to open velocity_profile.csv for writing.\n";
-    }
+    // Verify the velocity profile (example check: size and values)
+    ASSERT_FALSE(velocity_profile.empty()) << "Velocity profile should not be empty.";
 
-    // Check that the velocity profile is not empty
-    assert(!velocity_profile.empty());
-    std::cout << "Velocity profile is not empty.\n";
-
-    // Check that the velocity profile starts at 0
-    assert(velocity_profile.front() == 0.0);
-    std::cout << "Velocity profile starts at 0.\n";
-
-    // Check that the velocity profile ends at the final velocity
-    assert(velocity_profile.back() == demo.get_final_velocity());
-    std::cout << "Velocity profile ends at the final velocity.\n";
-
-
-
-
-
-    // Print the velocity profile for debugging
-    std::cout << "Velocity Profile: ";
     for (double velocity : velocity_profile) {
-        std::cout << velocity << " ";
+        ASSERT_NEAR(velocity, travel_velocity, 0.01) << "Velocity profile values should match the travel velocity.";
     }
-    std::cout << std::endl;
-}
-
-int main() {
-    test_velocity_profile();
-    std::cout << "All test cases passed!\n";
-    return 0;
 }

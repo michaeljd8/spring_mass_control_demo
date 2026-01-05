@@ -12,12 +12,11 @@ class SpringMassControlDemo {
 public:
     // Constructor with default parameters
     SpringMassControlDemo(double final_velocity = 10.0, 
-                        double target_distance = 50.0,
+                        double approach_distance = 50.0,
                         double final_distance = 60.0, 
                         double approach_offset = 10.0, // Distance BEFORE the target distance to target reaching final velocity
                         double travel_velocity = 80.0,
-                        double acceleration = 200.0,
-                        double deceleration = 200.0);
+                        double acceleration = 200.0);
 
     // Create Velocity Profile based on user defined parameters
     void create_velocity_profile();
@@ -32,7 +31,7 @@ public:
     void set_approach_offset(double approach_offset);
     void set_travel_velocity(double travel_velocity);
     void set_acceleration(double acceleration);
-    void set_deceleration(double deceleration);
+    void set_approach_distance(double approach_distance); // Setter for approach distance
 
     // Getters for User Defined Parameters
     double get_final_velocity() const;
@@ -41,15 +40,13 @@ public:
     double get_approach_offset() const;
     double get_travel_velocity() const;
     double get_acceleration() const;
-    double get_deceleration() const;
+    double get_approach_distance() const; // Getter for approach distance
 
     // Getters for System Parameters
     static constexpr double get_max_velocity() { return MAX_VELOCITY; }
     static constexpr double get_min_velocity() { return MIN_VELOCITY; }
     static constexpr double get_max_acceleration() { return MAX_ACCELERATION; }
     static constexpr double get_min_acceleration() { return MIN_ACCELERATION; }
-    static constexpr double get_max_deceleration() { return MAX_DECELERATION; }
-    static constexpr double get_min_deceleration() { return MIN_DECELERATION; }
     static constexpr double get_max_distance() { return MAX_DISTANCE; }
     static constexpr double get_min_distance() { return MIN_DISTANCE; }
     static constexpr double get_sampling_time() { return SAMPLING_TIME; }
@@ -71,13 +68,12 @@ public:
 private:
 
     // User Defined Parameters
-    double final_velocity_; // Velocity the mass must be traveling after the target distance till the final distance (mm/s)
-    double target_distance_; // Desired position achieve stable final velocity (mm)
+    double final_velocity_; // Velocity the mass must be traveling after the approach distance till the final distance (mm/s)
+    double approach_distance_; // Desired position achieve stable final velocity (mm)
     double final_distance_; // Final distance to stop at (mm)
-    double approach_offset_; // Distance before the target distance to target reaching approach velocity (mm)
+    double approach_offset_; // Distance before the approach distance to target reaching approach velocity (mm)
     double travel_velocity_; // Maximum velocity during travel to approach distance (mm/s)
     double acceleration_; // Acceleration (mm/s^2)
-    double deceleration_; // Deceleration (mm/s^2)
 
     // Internal State Variables
     double control_velocity_; // Current set drive velocity (mm/s)
@@ -93,9 +89,7 @@ private:
     static constexpr double MAX_VELOCITY = 100.0; // Maximum allowable velocity (mm/s)
     static constexpr double MIN_VELOCITY = 10.0;  // Minimum allowable velocity (mm/s)
     static constexpr double MAX_ACCELERATION = 500.0; // Maximum allowable acceleration (mm/s^2)
-    static constexpr double MAX_DECELERATION = 500.0; // Maximum allowable deceleration (mm/s^2)
     static constexpr double MIN_ACCELERATION = 50.0;  // Minimum allowable acceleration (mm/s^2)
-    static constexpr double MIN_DECELERATION = 50.0;  // Minimum allowable deceleration (mm/s^2)
     static constexpr double MAX_DISTANCE = 100.0;     // Maximum travel distance (mm)
     static constexpr double MIN_DISTANCE = 5.0;       // Minimum travel distance the user can set (mm)
     static constexpr double JERK = 1000.0;            // Jerk is fixed at 1000 mm/s^3 for S-curve profiles

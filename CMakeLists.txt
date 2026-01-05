@@ -11,64 +11,28 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 # Include directories
 include_directories(PlantModel)
 
-# Add the executable for the test
-add_executable(PlantModel_test tests/PlantModel_test.cpp PlantModel/PlantModel.cpp)
-
 # Link libraries
 find_package(GTest REQUIRED)
 find_package(Threads REQUIRED)
 
+# Enable testing framework
+enable_testing()
+
+# Add test for PlantModel_test
+add_executable(PlantModel_test tests/PlantModel_test.cpp PlantModel/PlantModel.cpp)
 target_link_libraries(PlantModel_test GTest::GTest GTest::Main Threads::Threads)
+add_test(NAME PlantModelTest COMMAND PlantModel_test)
 
-# Add a custom target to run the tests
-add_custom_target(run_tests
-    COMMAND $<TARGET_FILE:PlantModel_test>
-    DEPENDS PlantModel_test
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-)
-
-# Add a custom target to run the Python visualization script
-add_custom_target(plot_plant_test
-    COMMAND ${CMAKE_COMMAND} -E env python3 tests/PlantModel_test_vis.py
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-
-# Add the executable for the getters and setters test
+# Add test for getters_setters_unit
 add_executable(getters_setters_unit tests/getters_setters_unit.cpp src/SpringMassControlDemo.cpp)
-
-# Link libraries for the getters and setters test
 target_link_libraries(getters_setters_unit GTest::GTest GTest::Main Threads::Threads)
+add_test(NAME GettersSettersUnitTest COMMAND getters_setters_unit)
 
-# Add a custom target to run the getters and setters test
-add_custom_target(run_getters_setters_unit
-    COMMAND $<TARGET_FILE:getters_setters_unit>
-    DEPENDS getters_setters_unit
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-)
-
-# Add a custom target to build and run the getters and setters test
-add_custom_target(build_and_run_getters_setters_unit
-    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target getters_setters_unit
-    COMMAND $<TARGET_FILE:getters_setters_unit>
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-)
-
-# Add the executable for the velocity profile test
+# Add test for velocity profile
 add_executable(test_velocity_profile tests/test_velocity_profile.cpp src/SpringMassControlDemo.cpp)
-
-# Link libraries for the velocity profile test
 target_link_libraries(test_velocity_profile GTest::GTest GTest::Main Threads::Threads)
+add_test(NAME VelocityProfileTest COMMAND test_velocity_profile)
 
-# Add a custom target to run the velocity profile test
-add_custom_target(run_velocity_profile_test
-    COMMAND $<TARGET_FILE:test_velocity_profile>
-    DEPENDS test_velocity_profile
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-)
-
-# Add a custom target to build and run the velocity profile test
-add_custom_target(build_and_run_velocity_profile_test
-    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target test_velocity_profile
-    COMMAND $<TARGET_FILE:test_velocity_profile>
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-)
+# Add Python visualization script as a test
+find_package(Python3 REQUIRED)
+add_test(NAME PlotPlantTest COMMAND ${Python3_EXECUTABLE} tests/PlantModel_test_vis.py)

@@ -1,6 +1,8 @@
 #include "../src/SpringMassControlDemo.hpp"
 #include <cassert>
 #include <iostream>
+#include <gtest/gtest.h>
+#include <vector>
 
 void test_getters_and_setters() {
     SpringMassControlDemo demo;
@@ -53,18 +55,13 @@ void test_getters_and_setters() {
     demo.set_acceleration(600.0); // Above MAX_ACCELERATION
     assert(demo.get_acceleration() == 500.0);
 
-    // Test deceleration
-    demo.set_deceleration(300.0);
-    assert(demo.get_deceleration() == 300.0);
-    demo.set_deceleration(20.0); // Below MIN_DECELERATION
-    assert(demo.get_deceleration() == 50.0);
-    demo.set_deceleration(600.0); // Above MAX_DECELERATION
-    assert(demo.get_deceleration() == 500.0);
-
     std::cout << "All getter and setter tests passed!" << std::endl;
 }
 
+
+
 int main() {
     test_getters_and_setters();
-    return 0;
+    ::testing::InitGoogleTest();
+    return RUN_ALL_TESTS();
 }
