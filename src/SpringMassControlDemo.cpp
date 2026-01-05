@@ -29,36 +29,52 @@ SpringMassControlDemo::SpringMassControlDemo(double final_velocity,
 void SpringMassControlDemo::create_velocity_profile() {
     velocity_profile_.clear(); // Clear the vector before populating it
 
-    double distance = 0.0;
-    double velocity = 0.0;
-    double dt = SAMPLING_TIME;
+    double distance_to_travel = approach_distance_ - approach_offset_;
+    
+    // Calculate distance to reach travel velocity
+    double distance_accel = (travel_velocity_ * travel_velocity_) / (2 * acceleration_);
+    double distance_decel = (travel_velocity_ * travel_velocity_ - final_velocity_ * final_velocity_) / (2 * acceleration_);
 
-    // Acceleration Phase
-    while (velocity < travel_velocity_) {
-        velocity += acceleration_ * dt;
-        if (velocity > travel_velocity_) {
-            velocity = travel_velocity_;
+    // Check if we have enough distance for full trapezoidal profile
+    double distance_constant = distance_to_travel - distance_accel - distance_decel;
+
+    // Create the velocity profile
+    double current_distance = 0.0;
+    double current_velocity = 0.0;
+
+    // Acceleration phase
+    while (current_distance < distance_accel && current_velocity < travel_velocity_) {
+        velocity_profile_.emplace_back(current_distance, current_velocity);
+        // Update velocity first, then use average velocity for distance (trapezoidal integration)
+        double new_velocity = current_velocity + acceleration_ * SAMPLING_TIME;
+        if (new_velocity > travel_velocity_) {
+            new_velocity = travel_velocity_;
         }
-        distance += velocity * dt;
-        velocity_profile_.push_back(std::make_pair(distance, velocity)); // Add to the profile
+        current_distance += (current_velocity + new_velocity) / 2.0 * SAMPLING_TIME;
+        current_velocity = new_velocity;
     }
 
-    // Constant Velocity Phase
-    while (distance < (approach_distance_ - approach_offset_)) {
-        distance += velocity * dt;
-        velocity_profile_.push_back(std::make_pair(distance, velocity)); // Add to the profile
+    // Constant velocity phase (only if there's room for it)
+    double decel_start_distance = distance_to_travel - distance_decel;
+    while (current_distance < decel_start_distance) {
+        velocity_profile_.emplace_back(current_distance, current_velocity);
+        current_distance += current_velocity * SAMPLING_TIME;
     }
 
-    // Deceleration Phase
-    while (distance < approach_distance_) {
-        velocity -= acceleration_ * dt;
-        if (velocity < 0) {
-            velocity = 0;
+    // Deceleration phase
+    while (current_distance < distance_to_travel && current_velocity > final_velocity_) {
+        velocity_profile_.emplace_back(current_distance, current_velocity);
+        // Update velocity first, then use average velocity for distance (trapezoidal integration)
+        double new_velocity = current_velocity - acceleration_ * SAMPLING_TIME;
+        if (new_velocity < final_velocity_) {
+            new_velocity = final_velocity_;
         }
-        distance += velocity * dt;
-        velocity_profile_.push_back(std::make_pair(distance, velocity)); // Add to the profile
+        current_distance += (current_velocity + new_velocity) / 2.0 * SAMPLING_TIME;
+        current_velocity = new_velocity;
     }
 
+    // Final point
+    velocity_profile_.emplace_back(distance_to_travel, final_velocity_);
 }
 
 

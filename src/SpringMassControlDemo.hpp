@@ -12,12 +12,12 @@ It will create a desired velocity profile based on user inputs and apply a close
 class SpringMassControlDemo {
 public:
     // Constructor with default parameters
-    SpringMassControlDemo(double final_velocity = 10.0, 
-                        double approach_distance = 50.0,
-                        double final_distance = 60.0, 
-                        double approach_offset = 10.0, // Distance BEFORE the target distance to target reaching final velocity
-                        double travel_velocity = 80.0,
-                        double acceleration = 200.0);
+    SpringMassControlDemo(double final_velocity = 10.0, // mm/s
+                        double approach_distance = 50.0, // mm
+                        double final_distance = 60.0, // mm
+                        double approach_offset = 10.0, // mm
+                        double travel_velocity = 80.0, // mm/s
+                        double acceleration = 200.0); // mm/s^2
 
     // Create Velocity Profile based on user defined parameters
     void create_velocity_profile();
