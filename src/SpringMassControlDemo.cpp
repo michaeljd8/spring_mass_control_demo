@@ -31,14 +31,9 @@ void SpringMassControlDemo::create_velocity_profile() {
     velocity_profile_.clear(); // Clear the vector before populating it
 
     double distance_to_travel = approach_distance_ - approach_offset_;
-    
-    // Jerk is the rate of change of acceleration
-    // For S-curve, we use a jerk value that allows smooth transitions
-    // Higher jerk = faster transitions (closer to trapezoidal), lower jerk = smoother
-    double jerk = acceleration_ * 10.0; // Jerk in mm/s^3 (tune this for smoothness)
-    
+
     // Time to ramp acceleration from 0 to max (and back to 0)
-    double t_jerk = acceleration_ / jerk;
+    double t_jerk = acceleration_ / JERK;
     
     // Velocity gained during jerk phase (acceleration ramping up or down)
     double v_jerk = 0.5 * acceleration_ * t_jerk;
@@ -53,7 +48,7 @@ void SpringMassControlDemo::create_velocity_profile() {
     if (t_accel_constant < 0) {
         // Not enough time for constant acceleration phase, recalculate
         t_accel_constant = 0;
-        t_jerk = std::sqrt(travel_velocity_ / jerk);
+        t_jerk = std::sqrt(travel_velocity_ / JERK);
     }
     
     // Create the velocity profile
@@ -68,7 +63,7 @@ void SpringMassControlDemo::create_velocity_profile() {
         velocity_profile_.emplace_back(current_distance, current_velocity);
         
         // Update acceleration (increases linearly with jerk)
-        double new_acceleration = current_acceleration + jerk * SAMPLING_TIME;
+        double new_acceleration = current_acceleration + JERK * SAMPLING_TIME;
         if (new_acceleration > acceleration_) new_acceleration = acceleration_;
         
         // Update velocity using average acceleration
@@ -97,7 +92,7 @@ void SpringMassControlDemo::create_velocity_profile() {
     while (t < t_phase3_end && current_velocity < travel_velocity_) {
         velocity_profile_.emplace_back(current_distance, current_velocity);
         
-        double new_acceleration = current_acceleration - jerk * SAMPLING_TIME;
+        double new_acceleration = current_acceleration - JERK * SAMPLING_TIME;
         if (new_acceleration < 0) new_acceleration = 0;
         
         double new_velocity = current_velocity + (current_acceleration + new_acceleration) / 2.0 * SAMPLING_TIME;
@@ -115,7 +110,7 @@ void SpringMassControlDemo::create_velocity_profile() {
     
     // Calculate deceleration distances for S-curve
     double decel_velocity_change = travel_velocity_ - final_velocity_;
-    double t_decel_jerk = acceleration_ / jerk;
+    double t_decel_jerk = acceleration_ / JERK;
     double t_decel_constant = (decel_velocity_change - 2.0 * (0.5 * acceleration_ * t_decel_jerk)) / acceleration_;
     if (t_decel_constant < 0) t_decel_constant = 0;
     
@@ -139,7 +134,7 @@ void SpringMassControlDemo::create_velocity_profile() {
     while (t < t_decel_jerk && current_velocity > final_velocity_) {
         velocity_profile_.emplace_back(current_distance, current_velocity);
         
-        double new_acceleration = current_acceleration - jerk * SAMPLING_TIME;
+        double new_acceleration = current_acceleration - JERK * SAMPLING_TIME;
         if (new_acceleration < -acceleration_) new_acceleration = -acceleration_;
         
         double new_velocity = current_velocity + (current_acceleration + new_acceleration) / 2.0 * SAMPLING_TIME;
@@ -167,7 +162,7 @@ void SpringMassControlDemo::create_velocity_profile() {
     while (t < 2.0 * t_decel_jerk + t_decel_constant && current_velocity > final_velocity_) {
         velocity_profile_.emplace_back(current_distance, current_velocity);
         
-        double new_acceleration = current_acceleration + jerk * SAMPLING_TIME;
+        double new_acceleration = current_acceleration + JERK * SAMPLING_TIME;
         if (new_acceleration > 0) new_acceleration = 0;
         
         double new_velocity = current_velocity + (current_acceleration + new_acceleration) / 2.0 * SAMPLING_TIME;

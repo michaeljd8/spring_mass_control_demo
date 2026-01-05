@@ -93,7 +93,7 @@ private:
     static constexpr double MIN_ACCELERATION = 50.0;  // Minimum allowable acceleration (mm/s^2)
     static constexpr double MAX_DISTANCE = 100.0;     // Maximum travel distance (mm)
     static constexpr double MIN_DISTANCE = 5.0;       // Minimum travel distance the user can set (mm)
-    static constexpr double JERK = 1000.0;            // Jerk is fixed at 1000 mm/s^3 for S-curve profiles
+    static constexpr double JERK = 5000.0;            // Jerk is fixed at 5000 mm/s^3 for S-curve profiles
     static constexpr double SAMPLING_TIME = 0.001;    // Sampling time for control loop (s)
 };
 
