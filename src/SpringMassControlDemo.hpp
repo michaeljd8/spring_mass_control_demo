@@ -7,6 +7,7 @@ It will create a desired velocity profile based on user inputs and apply a close
 #define SPRINGMASSCONTROLDEMO_HPP
 
 #include <vector>
+#include <utility> // for std::pair
 
 class SpringMassControlDemo {
 public:
@@ -59,7 +60,7 @@ public:
     double get_mass_velocity() const;
 
     // Getter for Velocity Profile
-    const std::vector<double>& get_velocity_profile() const {
+    const std::vector<std::pair<double, double>>& get_velocity_profile() const {
         return velocity_profile_;
     }
 
@@ -82,8 +83,8 @@ private:
     double mass_position_; // Measured mass position (mm)
     double mass_velocity_; // Calculated from mass_position_ (mm/s)
 
-    // Velocity Profile
-    std::vector<double> velocity_profile_;
+    // Velocity Profile Pair for Distance and Velocity
+    std::vector<std::pair<double, double>> velocity_profile_; // Velocity profile over time (mm/s)
 
     // System Parameters
     static constexpr double MAX_VELOCITY = 100.0; // Maximum allowable velocity (mm/s)

@@ -27,39 +27,38 @@ SpringMassControlDemo::SpringMassControlDemo(double final_velocity,
 
 // Create trapezoidal Velocity Profile based on user defined parameters
 void SpringMassControlDemo::create_velocity_profile() {
-    velocity_profile_.clear();
+    velocity_profile_.clear(); // Clear the vector before populating it
 
-    // Simple trapezoidal profile generation (placeholder logic)
-    double distance_to_accelerate = approach_distance_ - approach_offset_;
-    double time_to_accelerate = travel_velocity_ / acceleration_;
-    double distance_accelerating = 0.5 * acceleration_ * time_to_accelerate * time_to_accelerate;
+    double distance = 0.0;
+    double velocity = 0.0;
+    double dt = SAMPLING_TIME;
 
-    if (distance_accelerating > distance_to_accelerate) {
-        time_to_accelerate = std::sqrt(2 * distance_to_accelerate / acceleration_);
-        travel_velocity_ = acceleration_ * time_to_accelerate;
-    }
-
-    double total_time = (distance_to_accelerate / travel_velocity_) + (final_distance_ - approach_distance_) / final_velocity_;
-    int total_steps = static_cast<int>(total_time / SAMPLING_TIME);
-
-    for (int i = 0; i < total_steps; ++i) {
-        double current_time = i * SAMPLING_TIME;
-        double current_velocity;
-
-        if (current_time < time_to_accelerate) {
-            current_velocity = acceleration_ * current_time;
-        } else if (current_time < (total_time - (final_distance_ - approach_distance_) / final_velocity_)) {
-            current_velocity = travel_velocity_;
-        } else {
-            double decel_time = current_time - (total_time - (final_distance_ - approach_distance_) / final_velocity_);
-            current_velocity = travel_velocity_ - acceleration_ * decel_time;
-            if (current_velocity < final_velocity_) {
-                current_velocity = final_velocity_;
-            }
+    // Acceleration Phase
+    while (velocity < travel_velocity_) {
+        velocity += acceleration_ * dt;
+        if (velocity > travel_velocity_) {
+            velocity = travel_velocity_;
         }
-
-        velocity_profile_.push_back(current_velocity);
+        distance += velocity * dt;
+        velocity_profile_.push_back(std::make_pair(distance, velocity)); // Add to the profile
     }
+
+    // Constant Velocity Phase
+    while (distance < (approach_distance_ - approach_offset_)) {
+        distance += velocity * dt;
+        velocity_profile_.push_back(std::make_pair(distance, velocity)); // Add to the profile
+    }
+
+    // Deceleration Phase
+    while (distance < approach_distance_) {
+        velocity -= acceleration_ * dt;
+        if (velocity < 0) {
+            velocity = 0;
+        }
+        distance += velocity * dt;
+        velocity_profile_.push_back(std::make_pair(distance, velocity)); // Add to the profile
+    }
+
 }
 
 
