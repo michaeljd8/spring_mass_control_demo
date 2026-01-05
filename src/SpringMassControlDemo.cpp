@@ -1,5 +1,6 @@
 #include "SpringMassControlDemo.hpp"
 #include <iostream>
+#include <cmath>
 
 SpringMassControlDemo::SpringMassControlDemo(double final_velocity,
                                              double approach_distance,
@@ -24,18 +25,43 @@ SpringMassControlDemo::SpringMassControlDemo(double final_velocity,
 }
 
 
-// Create Velocity Profile based on user defined parameters
+// Create trapezoidal Velocity Profile based on user defined parameters
 void SpringMassControlDemo::create_velocity_profile() {
-
-    // Clear the velocity profile
     velocity_profile_.clear();
 
-    // Calculate distance to achieve jerk phase. This distance will be the same for all jerk motions
-    double jerk_time = acceleration_ / JERK; // Time to reach max acceleration
-    double jerk_distance = (1.0 / 6.0) * JERK * jerk_time * jerk_time * jerk_time; // Distance covered during jerk phase
+    // Simple trapezoidal profile generation (placeholder logic)
+    double distance_to_accelerate = approach_distance_ - approach_offset_;
+    double time_to_accelerate = travel_velocity_ / acceleration_;
+    double distance_accelerating = 0.5 * acceleration_ * time_to_accelerate * time_to_accelerate;
 
+    if (distance_accelerating > distance_to_accelerate) {
+        time_to_accelerate = std::sqrt(2 * distance_to_accelerate / acceleration_);
+        travel_velocity_ = acceleration_ * time_to_accelerate;
+    }
 
+    double total_time = (distance_to_accelerate / travel_velocity_) + (final_distance_ - approach_distance_) / final_velocity_;
+    int total_steps = static_cast<int>(total_time / SAMPLING_TIME);
+
+    for (int i = 0; i < total_steps; ++i) {
+        double current_time = i * SAMPLING_TIME;
+        double current_velocity;
+
+        if (current_time < time_to_accelerate) {
+            current_velocity = acceleration_ * current_time;
+        } else if (current_time < (total_time - (final_distance_ - approach_distance_) / final_velocity_)) {
+            current_velocity = travel_velocity_;
+        } else {
+            double decel_time = current_time - (total_time - (final_distance_ - approach_distance_) / final_velocity_);
+            current_velocity = travel_velocity_ - acceleration_ * decel_time;
+            if (current_velocity < final_velocity_) {
+                current_velocity = final_velocity_;
+            }
+        }
+
+        velocity_profile_.push_back(current_velocity);
+    }
 }
+
 
 // Closed Loop Control based on current mass position and velocity
 void SpringMassControlDemo::velocity_control(double drive_velocity, double mass_position, double mass_velocity) {
