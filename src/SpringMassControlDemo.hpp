@@ -94,9 +94,6 @@ private:
     static constexpr double MIN_DISTANCE = 5.0;       // Minimum travel distance the user can set (mm)
     static constexpr double JERK = 1000.0;            // Jerk is fixed at 1000 mm/s^3 for S-curve profiles
     static constexpr double SAMPLING_TIME = 0.001;    // Sampling time for control loop (s)
-
-    // Helper function for calculating the distance of an S-curve profile
-    double s_curve_distance(double initial_velocity, double final_velocity, double acceleration, double jerk);
 };
 
 #endif // SPRINGMASSCONTROLDEMO_HPP

@@ -23,18 +23,6 @@ SpringMassControlDemo::SpringMassControlDemo(double final_velocity,
     create_velocity_profile();
 }
 
-// Helper function to calculate the distance of an S-curve profile
-double SpringMassControlDemo::s_curve_distance(double initial_velocity, double final_velocity, double acceleration, double jerk) {
-    // Calculate distance to go from initial to final velocity including jerk
-    double jerk_time = acceleration / jerk; // Time to reach max acceleration
-    double jerk_distance = (1.0 / 6.0) * jerk * jerk_time * jerk_time * jerk_time; // Distance covered during jerk phase
-
-    double constant_accel_distance = (travel_velocity_ * travel_velocity_) / (2.0 * acceleration_); // Distance during constant acceleration
-
-    double s_curve_distance = 2.0 * jerk_distance + constant_accel_distance; // Total distance including jerk
-    return s_curve_distance, jerk_distance;
-
-}
 
 // Create Velocity Profile based on user defined parameters
 void SpringMassControlDemo::create_velocity_profile() {
@@ -42,24 +30,10 @@ void SpringMassControlDemo::create_velocity_profile() {
     // Clear the velocity profile
     velocity_profile_.clear();
 
-    // Calculate the total time for the velocity profile
-    double total_distance = approach_distance_ - approach_offset_;
-    double accel_to_max_dist, jerk_accel_dist = s_curve_distance(0.0, travel_velocity_, acceleration_, JERK);
-    double decel_to_final_dist, jerk_decel_dist = s_curve_distance(travel_velocity_, final_velocity_, acceleration_, JERK);
+    // Calculate distance to achieve jerk phase. This distance will be the same for all jerk motions
+    double jerk_time = acceleration_ / JERK; // Time to reach max acceleration
+    double jerk_distance = (1.0 / 6.0) * JERK * jerk_time * jerk_time * jerk_time; // Distance covered during jerk phase
 
-    // Check for triangular profile condition
-    if (total_distance < (accel_to_max_dist + decel_to_final_dist)) {
-        std::cerr << "Warning: Triangular profile detected. Adjusting travel velocity." << std::endl;
-        travel_velocity_ = total_distance / (accel_to_max_dist + decel_to_final_dist) * travel_velocity_;
-        accel_to_max_dist = s_curve_distance(0.0, travel_velocity_, acceleration_, JERK);
-        decel_to_final_dist = s_curve_distance(travel_velocity_, final_velocity_, acceleration_, JERK);
-    }
-
-    // DEBUG populate with dummy values for now
-    int num_samples = static_cast<int>((total_distance / travel_velocity_) / SAMPLING_TIME);
-    for (int i = 0; i < num_samples; ++i) {
-        velocity_profile_.push_back(10.0);
-    }
 
 }
 
