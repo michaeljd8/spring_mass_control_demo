@@ -8,7 +8,7 @@ TEST(SpringMassControlDemoTest, VelocityProfileGeneration) {
     double approach_distance = 70.0; // mm
     double final_distance = 80.0; // mm
     double approach_offset = 15.0; // mm
-    double travel_velocity = 20.0; // mm/s
+    double travel_velocity = 100.0; // mm/s
     double acceleration = 250.0; // mm/s^2
 
     SpringMassControlDemo demo(final_velocity, approach_distance, final_distance, approach_offset, travel_velocity, acceleration);

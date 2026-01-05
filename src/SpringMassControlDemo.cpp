@@ -25,56 +25,160 @@ SpringMassControlDemo::SpringMassControlDemo(double final_velocity,
 }
 
 
-// Create trapezoidal Velocity Profile based on user defined parameters
+// Create S-Curve Velocity Profile based on user defined parameters
+// S-curve uses jerk-limited motion for smoother acceleration/deceleration transitions
 void SpringMassControlDemo::create_velocity_profile() {
     velocity_profile_.clear(); // Clear the vector before populating it
 
     double distance_to_travel = approach_distance_ - approach_offset_;
     
-    // Calculate distance to reach travel velocity
-    double distance_accel = (travel_velocity_ * travel_velocity_) / (2 * acceleration_);
-    double distance_decel = (travel_velocity_ * travel_velocity_ - final_velocity_ * final_velocity_) / (2 * acceleration_);
-
-    // Check if we have enough distance for full trapezoidal profile
-    double distance_constant = distance_to_travel - distance_accel - distance_decel;
-
+    // Jerk is the rate of change of acceleration
+    // For S-curve, we use a jerk value that allows smooth transitions
+    // Higher jerk = faster transitions (closer to trapezoidal), lower jerk = smoother
+    double jerk = acceleration_ * 10.0; // Jerk in mm/s^3 (tune this for smoothness)
+    
+    // Time to ramp acceleration from 0 to max (and back to 0)
+    double t_jerk = acceleration_ / jerk;
+    
+    // Velocity gained during jerk phase (acceleration ramping up or down)
+    double v_jerk = 0.5 * acceleration_ * t_jerk;
+    
+    // Calculate if we can reach travel velocity with S-curve
+    // Full S-curve acceleration has: jerk-up, constant-accel, jerk-down phases
+    double v_accel_phase = travel_velocity_; // Target velocity after acceleration
+    
+    // Distance covered during acceleration phase (with S-curve)
+    // Simplified: assume we can reach full travel velocity
+    double t_accel_constant = (travel_velocity_ - 2.0 * v_jerk) / acceleration_;
+    if (t_accel_constant < 0) {
+        // Not enough time for constant acceleration phase, recalculate
+        t_accel_constant = 0;
+        t_jerk = std::sqrt(travel_velocity_ / jerk);
+    }
+    
     // Create the velocity profile
     double current_distance = 0.0;
     double current_velocity = 0.0;
-
-    // Acceleration phase
-    while (current_distance < distance_accel && current_velocity < travel_velocity_) {
+    double current_acceleration = 0.0;
+    
+    // Phase 1: Jerk-up (acceleration increases from 0 to max)
+    double t_phase1_end = t_jerk;
+    double t = 0.0;
+    while (t < t_phase1_end && current_velocity < travel_velocity_) {
         velocity_profile_.emplace_back(current_distance, current_velocity);
-        // Update velocity first, then use average velocity for distance (trapezoidal integration)
-        double new_velocity = current_velocity + acceleration_ * SAMPLING_TIME;
-        if (new_velocity > travel_velocity_) {
-            new_velocity = travel_velocity_;
-        }
+        
+        // Update acceleration (increases linearly with jerk)
+        double new_acceleration = current_acceleration + jerk * SAMPLING_TIME;
+        if (new_acceleration > acceleration_) new_acceleration = acceleration_;
+        
+        // Update velocity using average acceleration
+        double new_velocity = current_velocity + (current_acceleration + new_acceleration) / 2.0 * SAMPLING_TIME;
+        
+        // Update distance using average velocity
         current_distance += (current_velocity + new_velocity) / 2.0 * SAMPLING_TIME;
         current_velocity = new_velocity;
+        current_acceleration = new_acceleration;
+        t += SAMPLING_TIME;
     }
-
-    // Constant velocity phase (only if there's room for it)
-    double decel_start_distance = distance_to_travel - distance_decel;
+    
+    // Phase 2: Constant acceleration
+    double t_phase2_end = t_phase1_end + t_accel_constant;
+    while (t < t_phase2_end && current_velocity < travel_velocity_) {
+        velocity_profile_.emplace_back(current_distance, current_velocity);
+        
+        double new_velocity = current_velocity + acceleration_ * SAMPLING_TIME;
+        current_distance += (current_velocity + new_velocity) / 2.0 * SAMPLING_TIME;
+        current_velocity = new_velocity;
+        t += SAMPLING_TIME;
+    }
+    
+    // Phase 3: Jerk-down (acceleration decreases from max to 0)
+    double t_phase3_end = t_phase2_end + t_jerk;
+    while (t < t_phase3_end && current_velocity < travel_velocity_) {
+        velocity_profile_.emplace_back(current_distance, current_velocity);
+        
+        double new_acceleration = current_acceleration - jerk * SAMPLING_TIME;
+        if (new_acceleration < 0) new_acceleration = 0;
+        
+        double new_velocity = current_velocity + (current_acceleration + new_acceleration) / 2.0 * SAMPLING_TIME;
+        if (new_velocity > travel_velocity_) new_velocity = travel_velocity_;
+        
+        current_distance += (current_velocity + new_velocity) / 2.0 * SAMPLING_TIME;
+        current_velocity = new_velocity;
+        current_acceleration = new_acceleration;
+        t += SAMPLING_TIME;
+    }
+    
+    // Ensure we're at travel velocity
+    current_velocity = travel_velocity_;
+    current_acceleration = 0.0;
+    
+    // Calculate deceleration distances for S-curve
+    double decel_velocity_change = travel_velocity_ - final_velocity_;
+    double t_decel_jerk = acceleration_ / jerk;
+    double t_decel_constant = (decel_velocity_change - 2.0 * (0.5 * acceleration_ * t_decel_jerk)) / acceleration_;
+    if (t_decel_constant < 0) t_decel_constant = 0;
+    
+    // Estimate deceleration distance
+    double decel_distance = decel_velocity_change * (t_decel_jerk + t_decel_constant + t_decel_jerk) 
+                          - 0.5 * acceleration_ * std::pow(t_decel_constant + t_decel_jerk, 2);
+    if (decel_distance < 0) {
+        decel_distance = (travel_velocity_ * travel_velocity_ - final_velocity_ * final_velocity_) / (2.0 * acceleration_);
+    }
+    
+    // Phase 4: Constant velocity phase
+    double decel_start_distance = distance_to_travel - decel_distance;
     while (current_distance < decel_start_distance) {
         velocity_profile_.emplace_back(current_distance, current_velocity);
         current_distance += current_velocity * SAMPLING_TIME;
     }
-
-    // Deceleration phase
-    while (current_distance < distance_to_travel && current_velocity > final_velocity_) {
+    
+    // Phase 5: Jerk-down for deceleration (acceleration goes from 0 to -max)
+    double decel_phase_start = t;
+    t = 0.0;
+    while (t < t_decel_jerk && current_velocity > final_velocity_) {
         velocity_profile_.emplace_back(current_distance, current_velocity);
-        // Update velocity first, then use average velocity for distance (trapezoidal integration)
-        double new_velocity = current_velocity - acceleration_ * SAMPLING_TIME;
-        if (new_velocity < final_velocity_) {
-            new_velocity = final_velocity_;
-        }
+        
+        double new_acceleration = current_acceleration - jerk * SAMPLING_TIME;
+        if (new_acceleration < -acceleration_) new_acceleration = -acceleration_;
+        
+        double new_velocity = current_velocity + (current_acceleration + new_acceleration) / 2.0 * SAMPLING_TIME;
+        if (new_velocity < final_velocity_) new_velocity = final_velocity_;
+        
         current_distance += (current_velocity + new_velocity) / 2.0 * SAMPLING_TIME;
         current_velocity = new_velocity;
+        current_acceleration = new_acceleration;
+        t += SAMPLING_TIME;
+    }
+    
+    // Phase 6: Constant deceleration
+    while (t < t_decel_jerk + t_decel_constant && current_velocity > final_velocity_) {
+        velocity_profile_.emplace_back(current_distance, current_velocity);
+        
+        double new_velocity = current_velocity - acceleration_ * SAMPLING_TIME;
+        if (new_velocity < final_velocity_) new_velocity = final_velocity_;
+        
+        current_distance += (current_velocity + new_velocity) / 2.0 * SAMPLING_TIME;
+        current_velocity = new_velocity;
+        t += SAMPLING_TIME;
+    }
+    
+    // Phase 7: Jerk-up for deceleration (acceleration goes from -max to 0)
+    while (t < 2.0 * t_decel_jerk + t_decel_constant && current_velocity > final_velocity_) {
+        velocity_profile_.emplace_back(current_distance, current_velocity);
+        
+        double new_acceleration = current_acceleration + jerk * SAMPLING_TIME;
+        if (new_acceleration > 0) new_acceleration = 0;
+        
+        double new_velocity = current_velocity + (current_acceleration + new_acceleration) / 2.0 * SAMPLING_TIME;
+        if (new_velocity < final_velocity_) new_velocity = final_velocity_;
+        
+        current_distance += (current_velocity + new_velocity) / 2.0 * SAMPLING_TIME;
+        current_velocity = new_velocity;
+        current_acceleration = new_acceleration;
+        t += SAMPLING_TIME;
     }
 
-    // Final point
-    velocity_profile_.emplace_back(distance_to_travel, final_velocity_);
 }
 
 
