@@ -33,6 +33,11 @@ add_executable(test_velocity_profile tests/test_velocity_profile.cpp src/SpringM
 target_link_libraries(test_velocity_profile GTest::GTest GTest::Main Threads::Threads)
 add_test(NAME VelocityProfileTest COMMAND test_velocity_profile)
 
+# Add test for velocity controller (PID)
+add_executable(test_velocity_controller tests/test_velocity_controller.cpp src/SpringMassControlDemo.cpp)
+target_link_libraries(test_velocity_controller GTest::GTest GTest::Main Threads::Threads)
+add_test(NAME VelocityControllerTest COMMAND test_velocity_controller)
+
 # Add Python visualization script as a test
 find_package(Python3 REQUIRED)
 add_test(NAME PlotPlantTest COMMAND ${Python3_EXECUTABLE} tests/PlantModel_test_vis.py)

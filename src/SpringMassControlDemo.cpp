@@ -18,7 +18,12 @@ SpringMassControlDemo::SpringMassControlDemo(double final_velocity,
       drive_position_(0.0),
       drive_velocity_(0.0),
       mass_position_(0.0),
-      mass_velocity_(0.0) {
+      mass_velocity_(0.0),
+      kp_(1.0),           // Default proportional gain
+      ki_(0.1),           // Default integral gain
+      kd_(0.05),          // Default derivative gain
+      integral_error_(0.0),
+      previous_error_(0.0) {
 
     // Create initial velocity profile with default parameters
     create_velocity_profile();
@@ -178,8 +183,78 @@ void SpringMassControlDemo::create_velocity_profile() {
 
 
 // Closed Loop Control based on current mass position and velocity
+// Uses PID control to adjust drive velocity to track desired velocity profile
 void SpringMassControlDemo::velocity_control(double drive_velocity, double mass_position, double mass_velocity) {
-    // Implementation of closed loop velocity control
+    // Update internal state variables
+    drive_velocity_ = drive_velocity;
+    mass_position_ = mass_position;
+    mass_velocity_ = mass_velocity;
+    
+    // Look up desired velocity from velocity profile based on mass position
+    double desired_velocity = final_velocity_; // Default to final velocity
+    
+    // Find the desired velocity from the profile based on current mass position
+    if (!velocity_profile_.empty()) {
+        // Binary search or linear interpolation through the profile
+        for (size_t i = 0; i < velocity_profile_.size() - 1; ++i) {
+            double pos1 = velocity_profile_[i].first;
+            double pos2 = velocity_profile_[i + 1].first;
+            
+            if (mass_position >= pos1 && mass_position < pos2) {
+                // Linear interpolation between profile points
+                double vel1 = velocity_profile_[i].second;
+                double vel2 = velocity_profile_[i + 1].second;
+                double t = (mass_position - pos1) / (pos2 - pos1);
+                desired_velocity = vel1 + t * (vel2 - vel1);
+                break;
+            }
+        }
+        
+        // If position is beyond the profile, use final velocity
+        if (mass_position >= velocity_profile_.back().first) {
+            desired_velocity = final_velocity_;
+        }
+        // If position is before the profile starts, use the first profile velocity
+        else if (mass_position < velocity_profile_.front().first) {
+            desired_velocity = velocity_profile_.front().second;
+        }
+    }
+    
+    // Calculate velocity error (desired - actual)
+    double error = desired_velocity - mass_velocity;
+    
+    // Proportional term
+    double p_term = kp_ * error;
+    
+    // Integral term with anti-windup (limit integral accumulation)
+    integral_error_ += error * SAMPLING_TIME;
+    
+    // Anti-windup: limit integral term to prevent excessive accumulation
+    double max_integral = MAX_VELOCITY / (ki_ + 1e-6); // Prevent division by zero
+    if (integral_error_ > max_integral) {
+        integral_error_ = max_integral;
+    } else if (integral_error_ < -max_integral) {
+        integral_error_ = -max_integral;
+    }
+    double i_term = ki_ * integral_error_;
+    
+    // Derivative term (rate of change of error)
+    double derivative = (error - previous_error_) / SAMPLING_TIME;
+    double d_term = kd_ * derivative;
+    previous_error_ = error;
+    
+    // Calculate PID output
+    double pid_output = p_term + i_term + d_term;
+    
+    // Control velocity is the desired velocity plus PID correction
+    control_velocity_ = desired_velocity + pid_output;
+    
+    // Clamp control velocity to valid range
+    if (control_velocity_ > MAX_VELOCITY) {
+        control_velocity_ = MAX_VELOCITY;
+    } else if (control_velocity_ < 0.0) {
+        control_velocity_ = 0.0;
+    }
 }
 
 // Setters for User Defined Parameters with validation for limits
@@ -267,6 +342,30 @@ void SpringMassControlDemo::set_target_distance(double target_distance) {
     }
 }
 
+// Setters for PID Controller Gains
+void SpringMassControlDemo::set_pid_gains(double kp, double ki, double kd) {
+    kp_ = (kp >= 0.0) ? kp : 0.0;
+    ki_ = (ki >= 0.0) ? ki : 0.0;
+    kd_ = (kd >= 0.0) ? kd : 0.0;
+}
+
+void SpringMassControlDemo::set_kp(double kp) {
+    kp_ = (kp >= 0.0) ? kp : 0.0;
+}
+
+void SpringMassControlDemo::set_ki(double ki) {
+    ki_ = (ki >= 0.0) ? ki : 0.0;
+}
+
+void SpringMassControlDemo::set_kd(double kd) {
+    kd_ = (kd >= 0.0) ? kd : 0.0;
+}
+
+void SpringMassControlDemo::reset_pid() {
+    integral_error_ = 0.0;
+    previous_error_ = 0.0;
+}
+
 // Getters for User Defined Parameters
 double SpringMassControlDemo::get_approach_distance() const {
     return approach_distance_;
@@ -288,6 +387,17 @@ double SpringMassControlDemo::get_final_velocity() const {
 }
 double SpringMassControlDemo::get_target_distance() const {
     return approach_distance_;
+}
+
+// Getters for PID Controller Gains
+double SpringMassControlDemo::get_kp() const {
+    return kp_;
+}
+double SpringMassControlDemo::get_ki() const {
+    return ki_;
+}
+double SpringMassControlDemo::get_kd() const {
+    return kd_;
 }
 
 

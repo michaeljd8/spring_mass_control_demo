@@ -34,6 +34,13 @@ public:
     void set_acceleration(double acceleration);
     void set_approach_distance(double approach_distance); // Setter for approach distance
 
+    // Setters for PID Controller Gains
+    void set_pid_gains(double kp, double ki, double kd);
+    void set_kp(double kp);
+    void set_ki(double ki);
+    void set_kd(double kd);
+    void reset_pid(); // Reset integral and derivative terms
+
     // Getters for User Defined Parameters
     double get_final_velocity() const;
     double get_target_distance() const;
@@ -42,6 +49,11 @@ public:
     double get_travel_velocity() const;
     double get_acceleration() const;
     double get_approach_distance() const; // Getter for approach distance
+
+    // Getters for PID Controller Gains
+    double get_kp() const;
+    double get_ki() const;
+    double get_kd() const;
 
     // Getters for System Parameters
     static constexpr double get_max_velocity() { return MAX_VELOCITY; }
@@ -82,6 +94,13 @@ private:
     double drive_velocity_; // Calculated from drive_position_ (mm/s)
     double mass_position_; // Measured mass position (mm)
     double mass_velocity_; // Calculated from mass_position_ (mm/s)
+
+    // PID Controller Variables
+    double kp_;             // Proportional gain
+    double ki_;             // Integral gain
+    double kd_;             // Derivative gain
+    double integral_error_; // Accumulated integral error
+    double previous_error_; // Previous error for derivative calculation
 
     // Velocity Profile Pair for Distance and Velocity
     std::vector<std::pair<double, double>> velocity_profile_; // Velocity profile over time (mm/s)
