@@ -3,7 +3,7 @@
 #include <fstream>
 
 TEST(SpringMassControlDemoTest, VelocityProfileGeneration) {
-    // Create an instance of SpringMassControlDemo with custome parameters
+    // Create an instance of SpringMassControlDemo with custom parameters
     double final_velocity = 15.0; // mm/s
     double approach_distance = 70.0; // mm
     double final_distance = 80.0; // mm

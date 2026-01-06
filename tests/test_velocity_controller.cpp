@@ -204,13 +204,13 @@ TEST_F(VelocityControllerTest, VelocityProfileLookupBeyondEnd) {
 
 // Test internal state variables are updated correctly
 TEST_F(VelocityControllerTest, InternalStateUpdated) {
-    double drive_vel = 50.0;
     double mass_pos = 25.0;
     double mass_vel = 45.0;
+
+    double control_vel = 50.0;
     
-    controller.velocity_control(drive_vel, mass_pos, mass_vel);
-    
-    EXPECT_DOUBLE_EQ(controller.get_drive_velocity(), drive_vel);
+    controller.velocity_control(control_vel, mass_pos, mass_vel);
+
     EXPECT_DOUBLE_EQ(controller.get_mass_position(), mass_pos);
     EXPECT_DOUBLE_EQ(controller.get_mass_velocity(), mass_vel);
 }

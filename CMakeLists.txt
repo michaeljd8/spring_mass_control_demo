@@ -10,6 +10,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Include directories
 include_directories(PlantModel)
+include_directories(src)
 
 # Link libraries
 find_package(GTest REQUIRED)
@@ -41,3 +42,7 @@ add_test(NAME VelocityControllerTest COMMAND test_velocity_controller)
 # Add Python visualization script as a test
 find_package(Python3 REQUIRED)
 add_test(NAME PlotPlantTest COMMAND ${Python3_EXECUTABLE} tests/PlantModel_test_vis.py)
+
+# Add MIL Level 1 test
+add_executable(MIL_1_test MIL/MIL_L1.cpp PlantModel/PlantModel.cpp src/SpringMassControlDemo.cpp)
+add_test(NAME MIL_Level1_Test COMMAND MIL_1_test)

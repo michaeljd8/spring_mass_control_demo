@@ -14,16 +14,17 @@ SpringMassControlDemo::SpringMassControlDemo(double final_velocity,
       approach_offset_(approach_offset),
       travel_velocity_(travel_velocity),
       acceleration_(acceleration),
-      control_velocity_(0.0),
+      control_velocity_(0.0), 
       drive_position_(0.0),
-      drive_velocity_(0.0),
       mass_position_(0.0),
       mass_velocity_(0.0),
       kp_(1.0),           // Default proportional gain
       ki_(0.1),           // Default integral gain
       kd_(0.05),          // Default derivative gain
       integral_error_(0.0),
-      previous_error_(0.0) {
+      previous_error_(0.0),
+      time_counter_(0) // Initialize time counter
+{
 
     // Create initial velocity profile with default parameters
     create_velocity_profile();
@@ -184,44 +185,28 @@ void SpringMassControlDemo::create_velocity_profile() {
 
 // Closed Loop Control based on current mass position and velocity
 // Uses PID control to adjust drive velocity to track desired velocity profile
-void SpringMassControlDemo::velocity_control(double drive_velocity, double mass_position, double mass_velocity) {
+void SpringMassControlDemo::velocity_control(double control_velocity, double mass_position, double mass_velocity) {
     // Update internal state variables
-    drive_velocity_ = drive_velocity;
+    control_velocity_ = control_velocity;
     mass_position_ = mass_position;
     mass_velocity_ = mass_velocity;
-    
+
+    // Get Velocity Profile
+    const auto& velocity_profile = get_velocity_profile();
+
     // Look up desired velocity from velocity profile based on mass position
-    double desired_velocity = final_velocity_; // Default to final velocity
+    double desired_velocity = control_velocity_; 
     
     // Find the desired velocity from the profile based on current mass position
-    if (!velocity_profile_.empty()) {
-        // Binary search or linear interpolation through the profile
-        for (size_t i = 0; i < velocity_profile_.size() - 1; ++i) {
-            double pos1 = velocity_profile_[i].first;
-            double pos2 = velocity_profile_[i + 1].first;
-            
-            if (mass_position >= pos1 && mass_position < pos2) {
-                // Linear interpolation between profile points
-                double vel1 = velocity_profile_[i].second;
-                double vel2 = velocity_profile_[i + 1].second;
-                double t = (mass_position - pos1) / (pos2 - pos1);
-                desired_velocity = vel1 + t * (vel2 - vel1);
-                break;
-            }
-        }
-        
-        // If position is beyond the profile, use final velocity
-        if (mass_position >= velocity_profile_.back().first) {
-            desired_velocity = final_velocity_;
-        }
-        // If position is before the profile starts, use the first profile velocity
-        else if (mass_position < velocity_profile_.front().first) {
-            desired_velocity = velocity_profile_.front().second;
-        }
+    desired_velocity = velocity_profile[time_counter_].second;
+
+    // If position is beyond the profile, use final velocity
+    if (drive_position_ >= velocity_profile_.back().first) {
+        desired_velocity = final_velocity_;
     }
-    
+
     // Calculate velocity error (desired - actual)
-    double error = desired_velocity - mass_velocity;
+    double error = desired_velocity - mass_velocity_;
     
     // Proportional term
     double p_term = kp_ * error;
@@ -248,13 +233,10 @@ void SpringMassControlDemo::velocity_control(double drive_velocity, double mass_
     
     // Control velocity is the desired velocity plus PID correction
     control_velocity_ = desired_velocity + pid_output;
-    
-    // Clamp control velocity to valid range
-    if (control_velocity_ > MAX_VELOCITY) {
-        control_velocity_ = MAX_VELOCITY;
-    } else if (control_velocity_ < 0.0) {
-        control_velocity_ = 0.0;
-    }
+
+    // Track drive position by integrating control velocity
+    drive_position_ += control_velocity_ * SAMPLING_TIME;
+    time_counter_++;
 }
 
 // Setters for User Defined Parameters with validation for limits
@@ -407,9 +389,6 @@ double SpringMassControlDemo::get_control_velocity() const {
 }
 double SpringMassControlDemo::get_drive_position() const {
     return drive_position_;
-}
-double SpringMassControlDemo::get_drive_velocity() const {
-    return drive_velocity_;
 }
 double SpringMassControlDemo::get_mass_position() const {
     return mass_position_;

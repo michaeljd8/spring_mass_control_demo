@@ -43,7 +43,7 @@ private:
     double coulomb_friction;  // Coulomb friction force fc (N)
 
     // State variables
-    double drive_position;        // Drive position x_in (mm)
+    double drive_position = 1.0;        // Drive position x_in (mm) - Default to 1 mm/s to ensure movement at start
     double mass_position;          // Mass position x (mm)
     double mass_velocity;          // Mass velocity x_dot (mm/s)
 

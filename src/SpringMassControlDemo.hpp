@@ -13,9 +13,9 @@ class SpringMassControlDemo {
 public:
     // Constructor with default parameters
     SpringMassControlDemo(double final_velocity = 10.0, // mm/s
-                        double approach_distance = 50.0, // mm
+                        double approach_distance = 55.0, // mm
                         double final_distance = 60.0, // mm
-                        double approach_offset = 10.0, // mm
+                        double approach_offset = 2.0, // mm
                         double travel_velocity = 80.0, // mm/s
                         double acceleration = 200.0); // mm/s^2
 
@@ -91,9 +91,9 @@ private:
     // Internal State Variables
     double control_velocity_; // Current set drive velocity (mm/s)
     double drive_position_; // Measured drive position after control (mm)
-    double drive_velocity_; // Calculated from drive_position_ (mm/s)
     double mass_position_; // Measured mass position (mm)
     double mass_velocity_; // Calculated from mass_position_ (mm/s)
+    double time_counter_; // Time counter for tracking simulation time
 
     // PID Controller Variables
     double kp_;             // Proportional gain
