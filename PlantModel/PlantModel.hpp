@@ -37,15 +37,15 @@ public:
 private:
     // System parameters
     double mass;              // Mass (kg)
-    double spring_constant;   // Spring stiffness k (N/m)
-    double damping;           // Damping coefficient c (N*s/m)
-    double viscous_friction;  // Viscous friction coefficient b (N*s/m)
+    double spring_constant;   // Spring stiffness k (N/mm)
+    double damping;           // Damping coefficient c (N*s/mm)
+    double viscous_friction;  // Viscous friction coefficient b (N*s/mm)
     double coulomb_friction;  // Coulomb friction force fc (N)
 
     // State variables
-    double drive_position;        // Drive position x_in (m)
-    double mass_position;          // Mass position x (m)
-    double mass_velocity;          // Mass velocity x_dot (m/s)
+    double drive_position;        // Drive position x_in (mm)
+    double mass_position;          // Mass position x (mm)
+    double mass_velocity;          // Mass velocity x_dot (mm/s)
 
     // Compute acceleration given current state and input
     double compute_acceleration(double drive_position, double drive_velocity) const;

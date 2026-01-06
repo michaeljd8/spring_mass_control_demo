@@ -40,7 +40,7 @@ TEST_F(PlantModelTest, ResetState) {
 }
 
 
-// Test update with Euler integration
+// Test ubuild/pdate with Euler integration
 TEST_F(PlantModelTest, UpdateEulerIntegration) {
     double x_in_dot = 0.0;
     double dt = 0.1;
@@ -84,7 +84,7 @@ TEST_F(PlantModelTest, SaveSimulationData) {
         plant.update(constant_velocity, dt);
     }
 
-    save_to_csv("build/simulation_data.csv", time, drive_velocity, position, velocity);
+    save_to_csv("simulation_data.csv", time, drive_velocity, position, velocity);
     SUCCEED(); // Ensure the test passes
 }
 
@@ -123,7 +123,7 @@ TEST_F(PlantModelTest, ConstantVelocity) {
     }
 
     // Save the data for visualization
-    save_to_csv("build/velocity_data.csv", time, drive_velocity, position, velocity);
+    save_to_csv("velocity_data.csv", time, drive_velocity, position, velocity);
 
 }
 

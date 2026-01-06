@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 # Read the CSV file
 # Updated to use simulation_data.csv
-data = pd.read_csv("build/velocity_data.csv")
+data = pd.read_csv("velocity_data.csv")
 
 # Columns: time, drive_velocity, mass_position, mass_velocity
 time = data['time']
@@ -21,7 +21,7 @@ plt.plot(time, drive_velocity, label='Drive Velocity', color='blue', marker='o')
 plt.plot(time, mass_velocity, label='Mass Velocity', color='green')
 plt.title('Velocities vs Time')
 plt.xlabel('Time (s)')
-plt.ylabel('Velocity (m/s)')
+plt.ylabel('Velocity (mm/s)')
 plt.grid()
 plt.legend()
 
@@ -29,7 +29,7 @@ plt.subplot(2, 1, 2)
 plt.plot(time, mass_position, label='Mass Position', color='orange')
 plt.title('Mass Position vs Time')
 plt.xlabel('Time (s)')
-plt.ylabel('Mass Position (m)')
+plt.ylabel('Mass Position (mm)')
 plt.grid()
 plt.legend()
 
