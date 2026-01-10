@@ -14,7 +14,7 @@ SpringMassControlDemo::SpringMassControlDemo(double final_velocity,
       approach_offset_(approach_offset),
       travel_velocity_(travel_velocity),
       acceleration_(acceleration),
-      control_velocity_(0.0), 
+      control_velocity_(1.0), // Initial control velocity to ensure movement
       drive_position_(0.0),
       mass_position_(0.0),
       mass_velocity_(0.0),
@@ -59,7 +59,7 @@ void SpringMassControlDemo::create_velocity_profile() {
     
     // Create the velocity profile
     double current_distance = 0.0;
-    double current_velocity = 0.0;
+    double current_velocity = control_velocity_; // Start with initial control velocity to avoid zero
     double current_acceleration = 0.0;
     
     // Phase 1: Jerk-up (acceleration increases from 0 to max)
