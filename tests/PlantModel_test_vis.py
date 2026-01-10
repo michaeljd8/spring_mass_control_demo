@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 # Read the CSV file
 # Updated to use simulation_data.csv
-data = pd.read_csv("velocity_data.csv")
+data = pd.read_csv("../build/plant_model_log.csv")
 
 # Columns: time, drive_velocity, mass_position, mass_velocity
 time = data['time']
