@@ -49,14 +49,20 @@ TEST(PlantModelTest, BasicSimulationLogging) {
     logfile << "time,drive_position,drive_velocity,mass_position,mass_velocity\n";
 
     double drive_position = 0.0;
-    double drive_velocity = 50.0; // mm/s
     double dt = 0.01; // s
     int steps = 500;
+
+    // Create a constant acceleration drive velocity
+    double drive_accel = 50.0; // mm/s^2
+    double drive_velocity = 0.0;
 
     for (int i = 0; i < steps; ++i) {
         double time = i * dt;
         pm.update(drive_velocity, dt);
         drive_position += drive_velocity * dt;
+
+        // Update the drive velocity with constant acceleration
+        drive_velocity += drive_accel * dt;
 
         logfile << time << "," << drive_position << "," << drive_velocity << ","
                 << pm.get_position() << "," << pm.get_velocity() << "\n";

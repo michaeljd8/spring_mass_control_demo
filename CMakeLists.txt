@@ -12,9 +12,39 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 include_directories(PlantModel)
 include_directories(src)
 
+# Ensure Ruckig include directory is added to the include paths
+if(ruckig_FOUND)
+    include_directories(${ruckig_INCLUDE_DIRS})
+elseif(RUCKIG_FOUND)
+    include_directories(${RUCKIG_INCLUDE_DIRS})
+else()
+    include_directories(${CMAKE_BINARY_DIR}/_deps/ruckig-src/include)
+endif()
+
 # Link libraries
 find_package(GTest REQUIRED)
 find_package(Threads REQUIRED)
+
+# Find Ruckig library
+find_package(ruckig QUIET)
+if(NOT ruckig_FOUND)
+    # Try to find ruckig using pkg-config as fallback
+    find_package(PkgConfig)
+    if(PkgConfig_FOUND)
+        pkg_check_modules(RUCKIG ruckig)
+    endif()
+    
+    if(NOT RUCKIG_FOUND)
+        # Use FetchContent to download and build Ruckig
+        include(FetchContent)
+        FetchContent_Declare(
+            ruckig
+            GIT_REPOSITORY https://github.com/pantor/ruckig.git
+            GIT_TAG main
+        )
+        FetchContent_MakeAvailable(ruckig)
+    endif()
+endif()
 
 # Enable testing framework
 enable_testing()
@@ -26,17 +56,17 @@ add_test(NAME PlantModelTest COMMAND PlantModel_test)
 
 # Add test for getters_setters_unit
 add_executable(getters_setters_unit tests/getters_setters_unit.cpp src/SpringMassControlDemo.cpp)
-target_link_libraries(getters_setters_unit GTest::GTest GTest::Main Threads::Threads)
+target_link_libraries(getters_setters_unit GTest::GTest GTest::Main Threads::Threads ruckig)
 add_test(NAME GettersSettersUnitTest COMMAND getters_setters_unit)
 
 # Add test for velocity profile
 add_executable(test_velocity_profile tests/test_velocity_profile.cpp src/SpringMassControlDemo.cpp)
-target_link_libraries(test_velocity_profile GTest::GTest GTest::Main Threads::Threads)
+target_link_libraries(test_velocity_profile GTest::GTest GTest::Main Threads::Threads ruckig)
 add_test(NAME VelocityProfileTest COMMAND test_velocity_profile)
 
 # Add test for velocity controller (PID)
 add_executable(test_velocity_controller tests/test_velocity_controller.cpp src/SpringMassControlDemo.cpp)
-target_link_libraries(test_velocity_controller GTest::GTest GTest::Main Threads::Threads)
+target_link_libraries(test_velocity_controller GTest::GTest GTest::Main Threads::Threads ruckig)
 add_test(NAME VelocityControllerTest COMMAND test_velocity_controller)
 
 # Add Python visualization script as a test
@@ -45,4 +75,5 @@ add_test(NAME PlotPlantTest COMMAND ${Python3_EXECUTABLE} tests/PlantModel_test_
 
 # Add MIL Level 1 test
 add_executable(MIL_1_test MIL/MIL_L1.cpp PlantModel/PlantModel.cpp src/SpringMassControlDemo.cpp)
+target_link_libraries(MIL_1_test ruckig)
 add_test(NAME MIL_Level1_Test COMMAND MIL_1_test)

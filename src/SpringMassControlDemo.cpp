@@ -25,8 +25,26 @@ SpringMassControlDemo::SpringMassControlDemo(double final_velocity,
       previous_error_(0.0),
       time_counter_(0) // Initialize time counter
 {
+    // Initialize Ruckig trajectory generator with sampling time
+    ruckig_ = std::make_unique<ruckig::Ruckig<1>>(SAMPLING_TIME);
+    
+    // Initialize Ruckig input parameters for the trajectory
+    ruckig_input_.max_velocity[0] = travel_velocity_;
+    ruckig_input_.max_acceleration[0] = acceleration_;
+    ruckig_input_.max_jerk[0] = JERK;
+    
+    // Set initial state (position, velocity, acceleration)
+    ruckig_input_.current_position[0] = 0.0;
+    ruckig_input_.current_velocity[0] = control_velocity_;
+    ruckig_input_.current_acceleration[0] = 0.0;
+    
+    // Set target state: reach approach_distance with final_velocity
+    double target_distance = approach_distance_ - approach_offset_;
+    ruckig_input_.target_position[0] = target_distance;
+    ruckig_input_.target_velocity[0] = final_velocity_;
+    ruckig_input_.target_acceleration[0] = 0.0;
 
-    // Create initial velocity profile with default parameters
+    // Create initial velocity profile with default parameters (for backwards compatibility)
     create_velocity_profile();
 }
 
@@ -184,24 +202,31 @@ void SpringMassControlDemo::create_velocity_profile() {
 
 
 // Closed Loop Control based on current mass position and velocity
-// Uses PID control to adjust drive velocity to track desired velocity profile
+// Uses Ruckig for real-time S-curve trajectory generation with PID control
 void SpringMassControlDemo::velocity_control(double control_velocity, double mass_position, double mass_velocity) {
     // Update internal state variables
     control_velocity_ = control_velocity;
     mass_position_ = mass_position;
     mass_velocity_ = mass_velocity;
 
-    // Get Velocity Profile
-    const auto& velocity_profile = get_velocity_profile();
-
-    // Look up desired velocity from velocity profile based on mass position
-    double desired_velocity = control_velocity_; 
+    // Use Ruckig to compute the next trajectory state
+    ruckig::Result result = ruckig_->update(ruckig_input_, ruckig_output_);
     
-    // Find the desired velocity from the profile based on current mass position
-    desired_velocity = velocity_profile[time_counter_].second;
+    double desired_velocity;
+    
+    if (result == ruckig::Result::Working || result == ruckig::Result::Finished) {
+        // Get desired velocity from Ruckig trajectory
+        desired_velocity = ruckig_output_.new_velocity[0];
+        
+        // Pass the output state as input for the next iteration
+        ruckig_output_.pass_to_input(ruckig_input_);
+    } else {
+        // Trajectory calculation failed or finished, use final velocity
+        desired_velocity = final_velocity_;
+    }
 
-    // If position is beyond the profile, use final velocity
-    if (drive_position_ >= velocity_profile_.back().first) {
+    // If trajectory is finished, maintain final velocity
+    if (result == ruckig::Result::Finished) {
         desired_velocity = final_velocity_;
     }
 
@@ -346,6 +371,32 @@ void SpringMassControlDemo::set_kd(double kd) {
 void SpringMassControlDemo::reset_pid() {
     integral_error_ = 0.0;
     previous_error_ = 0.0;
+}
+
+void SpringMassControlDemo::reset_trajectory() {
+    // Reset internal state variables
+    drive_position_ = 0.0;
+    time_counter_ = 0;
+    control_velocity_ = 1.0;
+    
+    // Reset PID state
+    reset_pid();
+    
+    // Reinitialize Ruckig input parameters
+    ruckig_input_.max_velocity[0] = travel_velocity_;
+    ruckig_input_.max_acceleration[0] = acceleration_;
+    ruckig_input_.max_jerk[0] = JERK;
+    
+    // Set initial state (position, velocity, acceleration)
+    ruckig_input_.current_position[0] = 0.0;
+    ruckig_input_.current_velocity[0] = control_velocity_;
+    ruckig_input_.current_acceleration[0] = 0.0;
+    
+    // Set target state: reach approach_distance with final_velocity
+    double target_distance = approach_distance_ - approach_offset_;
+    ruckig_input_.target_position[0] = target_distance;
+    ruckig_input_.target_velocity[0] = final_velocity_;
+    ruckig_input_.target_acceleration[0] = 0.0;
 }
 
 // Getters for User Defined Parameters

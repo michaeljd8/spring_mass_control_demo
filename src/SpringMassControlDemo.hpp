@@ -8,6 +8,8 @@ It will create a desired velocity profile based on user inputs and apply a close
 
 #include <vector>
 #include <utility> // for std::pair
+#include <memory>
+#include <ruckig/ruckig.hpp>
 
 class SpringMassControlDemo {
 public:
@@ -40,6 +42,7 @@ public:
     void set_ki(double ki);
     void set_kd(double kd);
     void reset_pid(); // Reset integral and derivative terms
+    void reset_trajectory(); // Reset Ruckig trajectory to initial state
 
     // Getters for User Defined Parameters
     double get_final_velocity() const;
@@ -104,6 +107,11 @@ private:
 
     // Velocity Profile Pair for Distance and Velocity
     std::vector<std::pair<double, double>> velocity_profile_; // Velocity profile over time (mm/s)
+
+    // Ruckig trajectory generator for real-time S-curve motion
+    std::unique_ptr<ruckig::Ruckig<1>> ruckig_;
+    ruckig::InputParameter<1> ruckig_input_;
+    ruckig::OutputParameter<1> ruckig_output_;
 
     // System Parameters
     static constexpr double MAX_VELOCITY = 100.0; // Maximum allowable velocity (mm/s)
