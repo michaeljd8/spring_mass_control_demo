@@ -2,18 +2,11 @@
 #include "../PlantModel/PlantModel.hpp"
 #include <fstream>
 
-// Test reset sets position and velocity
-TEST(PlantModelTest, ResetSetsState) {
-    PlantModel pm; // use defaults
-    pm.reset(5.0, 2.0);
-    EXPECT_DOUBLE_EQ(pm.get_position(), 5.0);
-    EXPECT_DOUBLE_EQ(pm.get_velocity(), 2.0);
-}
 
 // Test that update with a positive drive velocity moves the mass forward
 TEST(PlantModelTest, UpdateMovesMassTowardsDrive) {
     PlantModel pm;
-    pm.reset(0.0, 0.0);
+    pm.reset();
 
     // Take several small steps with a positive drive velocity
     double dt = 0.01;
@@ -30,7 +23,7 @@ TEST(PlantModelTest, UpdateMovesMassTowardsDrive) {
 TEST(PlantModelTest, CoulombFrictionPreventsSmallForces) {
     // Set spring and damper small but Coulomb friction large
     PlantModel pm(1.0, 0.1, 0.1, 0.0, 5.0);
-    pm.reset(0.0, 0.0);
+    pm.reset();
 
     // Small drive velocity (so drive_position stays near default 1.0)
     pm.update(0.0, 0.1);
@@ -43,7 +36,7 @@ TEST(PlantModelTest, CoulombFrictionPreventsSmallForces) {
 // Basic unit test saving to a csv for visualization 
 TEST(PlantModelTest, BasicSimulationLogging) {
     PlantModel pm(0.1, 100.0, 1.0);
-    pm.reset(0.0, 0.0);
+    pm.reset();
 
     std::ofstream logfile("plant_model_log.csv");
     logfile << "time,drive_position,drive_velocity,mass_position,mass_velocity\n";

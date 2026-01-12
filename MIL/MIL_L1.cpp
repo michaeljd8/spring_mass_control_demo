@@ -65,8 +65,8 @@ void run_simulation(PlantModel& plant, SpringMassControlDemo& controller, std::v
         // Update PlantModel with computed control velocity
         plant.update(control_velocity, dt);
 
-        // Update drive position by integrating control velocity
-        drive_position += control_velocity * dt;
+        // Get the updated drive position
+        drive_position = controller.get_drive_position();
 
         // Compute current time and append a new sample
         double time = steps * dt;
@@ -85,9 +85,9 @@ int main() {
     PlantModel plant(0.1, 100.0, 1.0);
 
     double final_velocity = 15.0; // mm/s
-    double approach_distance = 70.0; // mm
+    double approach_distance = 78.0; // mm
     double final_distance = 80.0; // mm
-    double approach_offset = 15.0; // mm
+    double approach_offset = 5.0; // mm
     double travel_velocity = 100.0; // mm/s
     double acceleration = 250.0; // mm/s^2
 
@@ -109,10 +109,13 @@ int main() {
     save_to_csv(log, "MIL1_open_loop_simulation_results.csv");
 
     // Reset the plant model
-    plant.reset(0.0, 0.0);
+    plant.reset();
+
+    // Reset the controller trajectory and internal state for the second simulation
+    controller.reset_trajectory();
 
     // Set conservative PID gains for closed loop control
-    controller.set_pid_gains(2.0, 0.0, 0.0);
+    controller.set_pid_gains(10.0, 0.0, 0.0);
 
     // Clear log for closed loop simulation
     log.clear();

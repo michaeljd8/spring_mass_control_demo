@@ -12,102 +12,74 @@ import matplotlib.pyplot as plt
 import sys
 import os
 
-# Determine the CSV file path
-if len(sys.argv) > 1:
-    csv_file = sys.argv[1]
-else:
-    # Default to build directory
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    csv_file = os.path.join(script_dir, "../build/MIL1_closed_loop_simulation_results.csv")
+# Determine the CSV file paths
+script_dir = os.path.dirname(os.path.abspath(__file__))
+open_loop_csv = os.path.join(script_dir, "../build/MIL1_open_loop_simulation_results.csv")
+closed_loop_csv = os.path.join(script_dir, "../build/MIL1_closed_loop_simulation_results.csv")
 
-# Check if file exists
-if not os.path.exists(csv_file):
-    print(f"Error: CSV file not found: {csv_file}")
+# Check if files exist
+if not os.path.exists(open_loop_csv):
+    print(f"Error: Open loop CSV file not found: {open_loop_csv}")
+    sys.exit(1)
+if not os.path.exists(closed_loop_csv):
+    print(f"Error: Closed loop CSV file not found: {closed_loop_csv}")
     sys.exit(1)
 
-# Read the CSV file
-data = pd.read_csv(csv_file)
+# Read the CSV files
+open_loop_data = pd.read_csv(open_loop_csv)
+closed_loop_data = pd.read_csv(closed_loop_csv)
 
-# Check if run_id column exists for multiple runs
-if 'run_id' in data.columns:
-    runs = data['run_id'].unique()
-    num_runs = len(runs)
-else:
-    # Single run, add a default run_id
-    data['run_id'] = 0
-    runs = [0]
-    num_runs = 1
+# Extract data for plotting
+time_ol = open_loop_data['time']
+drive_position_ol = open_loop_data['drive_position']
+drive_velocity_ol = open_loop_data['drive_velocity']
+mass_position_ol = open_loop_data['mass_position']
+mass_velocity_ol = open_loop_data['mass_velocity']
 
-# Define colors and labels for each run
-run_colors = {0: {'drive': 'blue', 'mass': 'orange', 'vel': 'green'},
-              1: {'drive': 'red', 'mass': 'purple', 'vel': 'brown'}}
-run_labels = {0: 'Open Loop (No PID)', 1: 'PID Control'}
+# Extract data for closed loop
+time_cl = closed_loop_data['time']
+drive_position_cl = closed_loop_data['drive_position']
+drive_velocity_cl = closed_loop_data['drive_velocity']
+mass_position_cl = closed_loop_data['mass_position']
+mass_velocity_cl = closed_loop_data['mass_velocity']
 
-# Create figure with subplots
-fig, axes = plt.subplots(2, 1, figsize=(14, 10))
-fig.suptitle('MIL Level 1 Simulation Results - Open Loop vs PID Control', fontsize=16, fontweight='bold')
+# Create the plots
+fig, axs = plt.subplots(2, 2, figsize=(10, 12))
 
-# Plot each run
-for run_id in runs:
-    run_data = data[data['run_id'] == run_id]
-    time = run_data['time']
-    drive_position = run_data['drive_position']
-    drive_velocity = run_data['drive_velocity']
-    mass_position = run_data['mass_position']
-    mass_velocity = run_data['mass_velocity']
-    
-    label_suffix = run_labels.get(run_id, f'Run {run_id}')
-    colors = run_colors.get(run_id, {'drive': 'gray', 'mass': 'black', 'vel': 'cyan'})
-    linestyle = '-' if run_id == 0 else '--'
-    
-    # Plot 1: Drive Position and Mass Position
-    axes[0].plot(time, drive_position, label=f'Drive Position ({label_suffix})', 
-                 color=colors['drive'], linewidth=2, linestyle=linestyle)
-    axes[0].plot(time, mass_position, label=f'Mass Position ({label_suffix})', 
-                 color=colors['mass'], linewidth=2, linestyle=linestyle)
-    
-    # Plot 2: Drive Velocity and Mass Velocity
-    axes[1].plot(time, drive_velocity, label=f'Drive Velocity ({label_suffix})', 
-                 color=colors['drive'], linewidth=2, linestyle=linestyle)
-    axes[1].plot(time, mass_velocity, label=f'Mass Velocity ({label_suffix})', 
-                 color=colors['vel'], linewidth=2, linestyle=linestyle)
+# Plot 1: Open Loop Positions
+axs[0, 0].plot(time_ol, drive_position_ol, label='Drive Position (Open Loop)', color='blue')
+axs[0, 0].plot(time_ol, mass_position_ol, label='Mass Position (Open Loop)', color='orange')
+axs[0, 0].set_title('Open Loop: Drive and Mass Positions')
+axs[0, 0].set_xlabel('Time (s)')
+axs[0, 0].set_ylabel('Position (mm)')
+axs[0, 0].legend()
+axs[0, 0].grid()
 
-# Configure Plot 1
-axes[0].set_xlabel('Time (s)')
-axes[0].set_ylabel('Position (mm)')
-axes[0].set_title('Position vs Time')
-axes[0].grid(True, alpha=0.3)
-axes[0].legend(loc='best')
+# Plot 2: Open Loop Velocities
+axs[1, 0].plot(time_ol, drive_velocity_ol, label='Drive Velocity (Open Loop)', color='blue')
+axs[1, 0].plot(time_ol, mass_velocity_ol, label='Mass Velocity (Open Loop)', color='orange')
+axs[1, 0].set_title('Open Loop: Drive and Mass Velocities')
+axs[1, 0].set_xlabel('Time (s)')
+axs[1, 0].set_ylabel('Velocity (mm/s)')
+axs[1, 0].legend()
+axs[1, 0].grid()
 
-# Configure Plot 2
-axes[1].set_xlabel('Time (s)')
-axes[1].set_ylabel('Velocity (mm/s)')
-axes[1].set_title('Velocities vs Time')
-axes[1].grid(True, alpha=0.3)
-axes[1].legend(loc='best')
+# Plot 3: Closed Loop Positions
+axs[0, 1].plot(time_cl, drive_position_cl, label='Drive Position (Closed Loop)', color='blue')
+axs[0, 1].plot(time_cl, mass_position_cl, label='Mass Position (Closed Loop)', color='orange')
+axs[0, 1].set_title('Closed Loop: Drive and Mass Positions')
+axs[0, 1].set_xlabel('Time (s)')
+axs[0, 1].set_ylabel('Position (mm)')
+axs[0, 1].legend()
+axs[0, 1].grid()
 
-plt.tight_layout()
-
-# Print summary statistics for each run
-print("\n=== Simulation Summary ===")
-for run_id in runs:
-    run_data = data[data['run_id'] == run_id]
-    label = run_labels.get(run_id, f'Run {run_id}')
-    print(f"\n--- {label} ---")
-    print(f"  Total simulation time: {run_data['time'].iloc[-1]:.3f} s")
-    print(f"  Total steps: {len(run_data)}")
-    print(f"  Final drive position: {run_data['drive_position'].iloc[-1]:.6f} mm")
-    print(f"  Final mass position: {run_data['mass_position'].iloc[-1]:.6f} mm")
-    print(f"  Final mass velocity: {run_data['mass_velocity'].iloc[-1]:.6e} mm/s")
-    print(f"  Max mass velocity: {run_data['mass_velocity'].max():.6f} mm/s")
-    
-    # Get PID gains from the data if available
-    if 'kp' in run_data.columns and 'ki' in run_data.columns and 'kd' in run_data.columns:
-        kp = run_data['kp'].iloc[0]
-        ki = run_data['ki'].iloc[0]
-        kd = run_data['kd'].iloc[0]
-        print(f"  PID Gains: Kp={kp}, Ki={ki}, Kd={kd}")
-    else:
-        print("  PID Gains: Not available in the data")
+# Plot 4: Closed Loop Velocities
+axs[1, 1].plot(time_cl, drive_velocity_cl, label='Drive Velocity (Closed Loop)', color='blue')
+axs[1, 1].plot(time_cl, mass_velocity_cl, label='Mass Velocity (Closed Loop)', color='orange')
+axs[1, 1].set_title('Closed Loop: Drive and Mass Velocities')
+axs[1, 1].set_xlabel('Time (s)')
+axs[1, 1].set_ylabel('Velocity (mm/s)')
+axs[1, 1].legend()
+axs[1, 1].grid()
 
 plt.show()

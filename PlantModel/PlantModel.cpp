@@ -5,9 +5,10 @@
 PlantModel::PlantModel(double m, double k, double c, double b, double fc)
     : mass(m), spring_constant(k), damping(c), viscous_friction(b), coulomb_friction(fc), mass_position(0.0), mass_velocity(0.0) {}
 
-void PlantModel::reset(double initial_position, double initial_velocity) {
-    mass_position = initial_position;
-    mass_velocity = initial_velocity;
+void PlantModel::reset() {
+    mass_position = 0.0;
+    mass_velocity = 0.0;
+    drive_position = 0.0;  // Reset drive position to match mass position
 }
 
 double PlantModel::compute_acceleration(double x_in, double x_in_dot) const {

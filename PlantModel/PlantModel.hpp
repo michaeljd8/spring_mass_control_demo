@@ -23,7 +23,7 @@ public:
                double b = 0.1, double fc = 0.5);
 
     // Reset the system state to initial conditions
-    void reset(double initial_position = 0.0, double initial_velocity = 0.0);
+    void reset();
 
     // Update the system state using Euler integration
     void update(double drive_velocity, double dt);

@@ -45,7 +45,7 @@ SpringMassControlDemo::SpringMassControlDemo(double final_velocity,
     ruckig_input_.target_acceleration[0] = 0.0;
 
     // Create initial velocity profile with default parameters (for backwards compatibility)
-    create_velocity_profile();
+    // create_velocity_profile();
 }
 
 
