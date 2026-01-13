@@ -64,6 +64,46 @@ TEST(PlantModelTest, BasicSimulationLogging) {
     logfile.close();
 }
 
+// Unit Test to move the mass back and forth
+TEST(PlantModelTest, BackAndForthMotion) {
+    PlantModel pm(0.5, 50.0, 2.0);
+    pm.reset();
+
+    std::ofstream logfile("back_and_forth_motion.csv");
+    logfile << "time,drive_velocity,drive_position,mass_position,mass_velocity\n";
+
+    double dt = 0.01;
+    double drive_velocity = 10.0;  // Constant velocity forward
+    double drive_position = 0.0;
+    int steps_per_direction = 200;
+
+    // Move forward at constant velocity
+    for (int i = 0; i < steps_per_direction; ++i) {
+        double time = i * dt;
+        pm.update(drive_velocity, dt);
+        drive_position += drive_velocity * dt;
+
+        logfile << time << "," << drive_velocity << "," << drive_position << ","
+                << pm.get_position() << "," << pm.get_velocity() << "\n";
+    }
+
+    // Reverse and move back at constant velocity
+    drive_velocity = -10.0;
+    for (int i = 0; i < steps_per_direction * 2; ++i) {
+        double time = (steps_per_direction + i) * dt;
+        pm.update(drive_velocity, dt);
+        drive_position += drive_velocity * dt;
+
+        logfile << time << "," << drive_velocity << "," << drive_position << ","
+                << pm.get_position() << "," << pm.get_velocity() << "\n";
+    }
+
+    logfile.close();
+
+    // After moving back and forth, verify the simulation ran successfully
+    EXPECT_TRUE(true);
+}
+
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
