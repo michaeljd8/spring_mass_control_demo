@@ -92,6 +92,7 @@ private:
     double acceleration_; // Acceleration (mm/s^2)
 
     // Internal State Variables
+    int8_t direction_ = 1;  // +1 = extend, -1 = retract
     double control_velocity_; // Current set drive velocity (mm/s)
     double drive_position_; // Measured drive position after control (mm)
     double mass_position_; // Measured mass position (mm)
