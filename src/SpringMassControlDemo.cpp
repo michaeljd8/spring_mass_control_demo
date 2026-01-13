@@ -68,13 +68,22 @@ void SpringMassControlDemo::velocity_control(double control_velocity, double mas
         // Pass the output state as input for the next iteration
         ruckig_output_.pass_to_input(ruckig_input_);
     } else {
-        // Trajectory calculation failed or finished, use final velocity
-        desired_velocity = final_velocity_;
+        // Trajectory calculation failed, use appropriate velocity based on direction
+        if (direction_ > 0) {
+            desired_velocity = final_velocity_;
+        } else {
+            desired_velocity = 0.0;  // Stop when retracting
+        }
     }
 
-    // If trajectory is finished, maintain final velocity
+    // If trajectory is finished, handle based on motion state
     if (result == ruckig::Result::Finished) {
-        desired_velocity = final_velocity_;
+        if (motion_state_ == MotionState::Extending) {
+            desired_velocity = final_velocity_;  // Maintain final velocity after extend
+        } else if (motion_state_ == MotionState::Retracting) {
+            desired_velocity = 0.0;  // Stop after retract
+            motion_state_ = MotionState::Idle;
+        }
     }
 
     // Calculate velocity error (desired - actual)
@@ -244,6 +253,74 @@ void SpringMassControlDemo::reset_trajectory() {
     ruckig_input_.target_position[0] = target_distance;
     ruckig_input_.target_velocity[0] = final_velocity_;
     ruckig_input_.target_acceleration[0] = 0.0;
+    
+    // Reset motion state
+    motion_state_ = MotionState::Idle;
+}
+
+void SpringMassControlDemo::start_extend() {
+    // Set direction to extend
+    direction_ = 1;
+    motion_state_ = MotionState::Extending;
+    
+    // Reset PID state
+    reset_pid();
+    
+    // Configure Ruckig with user-defined parameters for extend
+    ruckig_input_.max_velocity[0] = travel_velocity_;
+    ruckig_input_.max_acceleration[0] = acceleration_;
+    ruckig_input_.max_jerk[0] = JERK;
+    
+    // Set current state from actual position
+    ruckig_input_.current_position[0] = drive_position_;
+    ruckig_input_.current_velocity[0] = control_velocity_;
+    ruckig_input_.current_acceleration[0] = 0.0;
+    
+    // Set target state: reach approach_distance with final_velocity
+    double target_distance = approach_distance_ - approach_offset_;
+    ruckig_input_.target_position[0] = target_distance;
+    ruckig_input_.target_velocity[0] = final_velocity_;
+    ruckig_input_.target_acceleration[0] = 0.0;
+}
+
+void SpringMassControlDemo::start_retract() {
+    // Set direction to retract
+    direction_ = -1;
+    motion_state_ = MotionState::Retracting;
+    
+    // Reset PID state
+    reset_pid();
+    
+    // Configure Ruckig with MAX parameters for retract (fastest return)
+    ruckig_input_.max_velocity[0] = MAX_VELOCITY;
+    ruckig_input_.max_acceleration[0] = MAX_ACCELERATION;
+    ruckig_input_.max_jerk[0] = JERK;
+    
+    // Set current state from actual position
+    ruckig_input_.current_position[0] = drive_position_;
+    ruckig_input_.current_velocity[0] = control_velocity_;
+    ruckig_input_.current_acceleration[0] = 0.0;
+    
+    // Set target state: return to home position (0.0) and stop
+    ruckig_input_.target_position[0] = 0.0;
+    ruckig_input_.target_velocity[0] = 0.0;
+    ruckig_input_.target_acceleration[0] = 0.0;
+}
+
+void SpringMassControlDemo::set_direction(int8_t direction) {
+    if (direction >= 0) {
+        direction_ = 1;
+    } else {
+        direction_ = -1;
+    }
+}
+
+int8_t SpringMassControlDemo::get_direction() const {
+    return direction_;
+}
+
+MotionState SpringMassControlDemo::get_motion_state() const {
+    return motion_state_;
 }
 
 // Getters for User Defined Parameters

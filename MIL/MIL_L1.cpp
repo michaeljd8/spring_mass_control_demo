@@ -45,38 +45,56 @@ void save_to_csv(const std::vector<DataPoint>& log, const std::string& filename)
     std::cout << "Data saved to " << filename << "\n";
 }
 
-// Function to run the simulation loop
-void run_simulation(PlantModel& plant, SpringMassControlDemo& controller, std::vector<DataPoint>& log, int max_steps) {
+// Function to run extend simulation - stops when mass reaches approach distance
+void run_extend_simulation(PlantModel& plant, SpringMassControlDemo& controller, std::vector<DataPoint>& log, int max_steps, double time_offset = 0.0) {
     int steps = 0;
-    double drive_position = 0.0;
     double control_velocity = controller.get_control_velocity();
+    double target_distance = controller.get_approach_distance() - controller.get_approach_offset();
 
-    while (plant.get_position() < controller.get_final_distance() && steps < max_steps) {
+    while (plant.get_position() < target_distance && steps < max_steps) {
         double mass_position = plant.get_position();
         double mass_velocity = plant.get_velocity();
         double dt = controller.get_sampling_time();
 
-        // Update the control velocity using the PID controller
         controller.velocity_control(control_velocity, mass_position, mass_velocity);
-
-        // Get the updated control velocity
         control_velocity = controller.get_control_velocity();
-
-        // Update PlantModel with computed control velocity
         plant.update(control_velocity, dt);
 
-        // Get the updated drive position
-        drive_position = controller.get_drive_position();
-
-        // Compute current time and append a new sample
-        double time = steps * dt;
+        double drive_position = controller.get_drive_position();
+        double time = time_offset + steps * dt;
         log.push_back({ time, drive_position, control_velocity, mass_position, mass_velocity });
 
         ++steps;
     }
 
     if (steps >= max_steps) {
-        std::cerr << "Warning: reached max steps (" << max_steps << ") before reaching target distance.\n";
+        std::cerr << "Warning: reached max steps (" << max_steps << ") before completing extend.\n";
+    }
+}
+
+// Function to run retract simulation - stops when motion state becomes Idle
+void run_retract_simulation(PlantModel& plant, SpringMassControlDemo& controller, std::vector<DataPoint>& log, int max_steps, double time_offset = 0.0) {
+    int steps = 0;
+    double control_velocity = controller.get_control_velocity();
+
+    while (controller.get_motion_state() != MotionState::Idle && steps < max_steps) {
+        double mass_position = plant.get_position();
+        double mass_velocity = plant.get_velocity();
+        double dt = controller.get_sampling_time();
+
+        controller.velocity_control(control_velocity, mass_position, mass_velocity);
+        control_velocity = controller.get_control_velocity();
+        plant.update(control_velocity, dt);
+
+        double drive_position = controller.get_drive_position();
+        double time = time_offset + steps * dt;
+        log.push_back({ time, drive_position, control_velocity, mass_position, mass_velocity });
+
+        ++steps;
+    }
+
+    if (steps >= max_steps) {
+        std::cerr << "Warning: reached max steps (" << max_steps << ") before completing retract.\n";
     }
 }
 
@@ -94,39 +112,38 @@ int main() {
     // Create SpringMassControlDemo with custom parameters
     SpringMassControlDemo controller(final_velocity, approach_distance, final_distance, approach_offset, travel_velocity, acceleration);
 
-    // Set PID values to 0 for open loop test
-    controller.set_pid_gains(0.0, 0.0, 0.0);
+    // Set PID gains for closed loop control
+    controller.set_pid_gains(10.0, 0.0, 0.0);
 
-    const int max_steps = 10000;
+    const int max_steps = 20000;
 
     // Container to store data for graphing
     std::vector<DataPoint> log;
 
-    // Run the simulation loop
-    run_simulation(plant, controller, log, max_steps);
+    // ===== EXTEND PHASE =====
+    std::cout << "Starting EXTEND phase...\n";
+    controller.start_extend();
+    
+    // Run the extend simulation
+    run_extend_simulation(plant, controller, log, max_steps);
 
-    // Output log data to CSV file for graphing
-    save_to_csv(log, "MIL1_open_loop_simulation_results.csv");
+    std::cout << "Extend completed at position: " << plant.get_position() << " mm\n";
+    std::cout << "Extend completed at velocity: " << plant.get_velocity() << " mm/s\n";
 
-    // Reset the plant model
-    plant.reset();
+    // ===== RETRACT PHASE =====
+    std::cout << "\nStarting RETRACT phase...\n";
+    controller.start_retract();
 
-    // Reset the controller trajectory and internal state for the second simulation
-    controller.reset_trajectory();
+    // Continue simulation for retract (append to same log for continuous data)
+    double time_offset = log.empty() ? 0.0 : log.back().time + controller.get_sampling_time();
+    
+    run_retract_simulation(plant, controller, log, max_steps, time_offset);
 
-    // Set conservative PID gains for closed loop control
-    controller.set_pid_gains(10.0, 0.0, 0.0);
+    // Output combined extend/retract log data to CSV file
+    save_to_csv(log, "MIL1_extend_retract_simulation.csv");
 
-    // Clear log for closed loop simulation
-    log.clear();
-
-    // Run the closed loop simulation
-    run_simulation(plant, controller, log, max_steps);
-
-    // Output closed loop log data to CSV file for graphing
-    save_to_csv(log, "MIL1_closed_loop_simulation_results.csv");
-
-    std::cout << "Simulation completed in " << log.size() << " steps.\n";
+    std::cout << "\nSimulation completed.\n";
+    std::cout << "Total steps: " << log.size() << "\n";
     std::cout << "Final mass position: " << plant.get_position() << " mm\n";
     std::cout << "Final mass velocity: " << plant.get_velocity() << " mm/s\n";
 

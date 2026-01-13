@@ -11,6 +11,13 @@ It will create a desired velocity profile based on user inputs and apply a close
 #include <memory>
 #include <ruckig/ruckig.hpp>
 
+// Motion state enum for tracking extend/retract state
+enum class MotionState : uint8_t {
+    Idle,
+    Extending,
+    Retracting
+};
+
 class SpringMassControlDemo {
 public:
     // Constructor with default parameters
@@ -43,6 +50,13 @@ public:
     void set_kd(double kd);
     void reset_pid(); // Reset integral and derivative terms
     void reset_trajectory(); // Reset Ruckig trajectory to initial state
+
+    // Direction and motion control
+    void start_extend();    // Configure and start extend motion (user parameters)
+    void start_retract();   // Configure and start retract motion (max parameters)
+    void set_direction(int8_t direction);  // +1 = extend, -1 = retract
+    int8_t get_direction() const;
+    MotionState get_motion_state() const;
 
     // Getters for User Defined Parameters
     double get_final_velocity() const;
@@ -93,6 +107,7 @@ private:
 
     // Internal State Variables
     int8_t direction_ = 1;  // +1 = extend, -1 = retract
+    MotionState motion_state_ = MotionState::Idle;  // Current motion state
     double control_velocity_; // Current set drive velocity (mm/s)
     double drive_position_; // Measured drive position after control (mm)
     double mass_position_; // Measured mass position (mm)
