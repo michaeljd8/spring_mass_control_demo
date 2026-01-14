@@ -12,6 +12,9 @@
 #include <cmath>
 #include <vector>
 
+// Type alias for cleaner MotionState access
+using MotionState = SpringMassControlDemo::MotionState;
+
 // Data point type
 struct DataPoint {
     double time;
@@ -111,9 +114,9 @@ int main() {
 
     // Create SpringMassControlDemo with custom parameters
     SpringMassControlDemo controller(final_velocity, approach_distance, final_distance, approach_offset, travel_velocity, acceleration);
-
-    // Set PID gains for closed loop control
-    controller.set_pid_gains(10.0, 0.0, 0.0);
+    
+    // Set PID gains to 0 for open loop benchmark
+    controller.set_pid_gains(0.0, 0.0, 0.0);
 
     const int max_steps = 20000;
 
@@ -140,12 +143,33 @@ int main() {
     run_retract_simulation(plant, controller, log, max_steps, time_offset);
 
     // Output combined extend/retract log data to CSV file
-    save_to_csv(log, "MIL1_extend_retract_simulation.csv");
+    save_to_csv(log, "MIL1_open_loop_simulation.csv");
 
-    std::cout << "\nSimulation completed.\n";
-    std::cout << "Total steps: " << log.size() << "\n";
-    std::cout << "Final mass position: " << plant.get_position() << " mm\n";
-    std::cout << "Final mass velocity: " << plant.get_velocity() << " mm/s\n";
+    // Delete and create new instances of the plant and controller
+    plant = PlantModel(0.1, 100.0, 1.0);
+    // Create a new controller instance for the closed-loop run instead of assigning to the existing one
+    SpringMassControlDemo controller_closed(final_velocity, approach_distance, final_distance, approach_offset, travel_velocity, acceleration);
+    
+    // Set PID gains for closed loop control - P only for demo
+    controller_closed.set_pid_gains(10.0, 0.0, 0.0);
+
+    // Clear log for closed loop data
+    log.clear();
+
+    // ===== EXTEND PHASE (Closed Loop) =====
+    std::cout << "\nStarting EXTEND phase (Closed Loop)...\n";
+    controller_closed.start_extend();
+    run_extend_simulation(plant, controller_closed, log, max_steps);
+    std::cout << "Extend completed at position: " << plant.get_position() << " mm\n";
+    std::cout << "Extend completed at velocity: " << plant.get_velocity() << " mm/s\n";
+
+    // ===== RETRACT PHASE (Closed Loop) =====
+    std::cout << "\nStarting RETRACT phase (Closed Loop)...\n";
+    controller_closed.start_retract();
+    time_offset = log.empty() ? 0.0 : log.back().time + controller_closed.get_sampling_time();
+    run_retract_simulation(plant, controller_closed, log, max_steps, time_offset);
+    save_to_csv(log, "MIL1_closed_loop_simulation.csv");
+
 
     return 0;
 }

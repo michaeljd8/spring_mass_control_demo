@@ -49,25 +49,36 @@ endif()
 # Enable testing framework
 enable_testing()
 
+# Custom target to remove CSV files in build directory before building tests
+add_custom_target(clean_csv
+    COMMAND ${CMAKE_COMMAND} -E echo "Removing .csv files from ${CMAKE_BINARY_DIR}"
+    COMMAND ${CMAKE_COMMAND} -E rm -f "${CMAKE_BINARY_DIR}/*.csv"
+    COMMENT "Cleaning CSV files from build directory"
+)
+
 # Add test for PlantModel_test
 add_executable(PlantModel_test tests/PlantModel_test.cpp PlantModel/PlantModel.cpp)
 target_link_libraries(PlantModel_test GTest::GTest GTest::Main Threads::Threads)
 add_test(NAME PlantModelTest COMMAND PlantModel_test)
+add_dependencies(PlantModel_test clean_csv)
 
 # Add test for getters_setters_unit
 add_executable(getters_setters_unit tests/getters_setters_unit.cpp src/SpringMassControlDemo.cpp)
 target_link_libraries(getters_setters_unit GTest::GTest GTest::Main Threads::Threads ruckig)
 add_test(NAME GettersSettersUnitTest COMMAND getters_setters_unit)
+add_dependencies(getters_setters_unit clean_csv)
 
 # Add test for velocity profile
 add_executable(test_velocity_profile tests/test_velocity_profile.cpp src/SpringMassControlDemo.cpp)
 target_link_libraries(test_velocity_profile GTest::GTest GTest::Main Threads::Threads ruckig)
 add_test(NAME VelocityProfileTest COMMAND test_velocity_profile)
+add_dependencies(test_velocity_profile clean_csv)
 
 # Add test for velocity controller (PID)
 add_executable(test_velocity_controller tests/test_velocity_controller.cpp src/SpringMassControlDemo.cpp)
 target_link_libraries(test_velocity_controller GTest::GTest GTest::Main Threads::Threads ruckig)
 add_test(NAME VelocityControllerTest COMMAND test_velocity_controller)
+add_dependencies(test_velocity_controller clean_csv)
 
 # Add Python visualization script as a test
 find_package(Python3 REQUIRED)
@@ -77,3 +88,4 @@ add_test(NAME PlotPlantTest COMMAND ${Python3_EXECUTABLE} tests/PlantModel_test_
 add_executable(MIL_1_test MIL/MIL_L1.cpp PlantModel/PlantModel.cpp src/SpringMassControlDemo.cpp)
 target_link_libraries(MIL_1_test ruckig)
 add_test(NAME MIL_Level1_Test COMMAND MIL_1_test)
+add_dependencies(MIL_1_test clean_csv)

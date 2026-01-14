@@ -7,19 +7,21 @@ It will create a desired velocity profile based on user inputs and apply a close
 #define SPRINGMASSCONTROLDEMO_HPP
 
 #include <vector>
-#include <utility> // for std::pair
+#include <utility> 
 #include <memory>
 #include <ruckig/ruckig.hpp>
 
-// Motion state enum for tracking extend/retract state
-enum class MotionState : uint8_t {
-    Idle,
-    Extending,
-    Retracting
-};
-
 class SpringMassControlDemo {
 public:
+    // Motion state enum for tracking extend/retract state
+    enum class MotionState : uint8_t {
+        Idle,
+        Extending,
+        Retracting
+    };
+
+    using MotionState = SpringMassControlDemo::MotionState;
+
     // Constructor with default parameters
     SpringMassControlDemo(double final_velocity = 10.0, // mm/s
                         double approach_distance = 55.0, // mm
@@ -27,9 +29,6 @@ public:
                         double approach_offset = 2.0, // mm
                         double travel_velocity = 80.0, // mm/s
                         double acceleration = 200.0); // mm/s^2
-
-    // Create Velocity Profile based on user defined parameters
-    void create_velocity_profile();
 
     // Closed Loop Control based on current mass position and velocity
     void velocity_control(double drive_velocity, double mass_position, double mass_velocity);
@@ -88,12 +87,17 @@ public:
     double get_mass_position() const;
     double get_mass_velocity() const;
 
+    virtual ~SpringMassControlDemo() = default;
+
+    // ==== Legacy Precomputed Velocity Profile Methods ====
+    // Create Velocity Profile based on user defined parameters
+    void create_velocity_profile();
+
     // Getter for Velocity Profile
     const std::vector<std::pair<double, double>>& get_velocity_profile() const {
         return velocity_profile_;
     }
-
-    virtual ~SpringMassControlDemo() = default;
+    
 
 private:
 
@@ -121,9 +125,6 @@ private:
     double integral_error_; // Accumulated integral error
     double previous_error_; // Previous error for derivative calculation
 
-    // Velocity Profile Pair for Distance and Velocity
-    std::vector<std::pair<double, double>> velocity_profile_; // Velocity profile over time (mm/s)
-
     // Ruckig trajectory generator for real-time S-curve motion
     std::unique_ptr<ruckig::Ruckig<1>> ruckig_;
     ruckig::InputParameter<1> ruckig_input_;
@@ -138,6 +139,12 @@ private:
     static constexpr double MIN_DISTANCE = 5.0;       // Minimum travel distance the user can set (mm)
     static constexpr double JERK = 5000.0;            // Jerk is fixed at 5000 mm/s^3 for S-curve profiles
     static constexpr double SAMPLING_TIME = 0.001;    // Sampling time for control loop (s)
+
+    // ==== Legacy Precomputed Velocity Profile Members ====
+    // Velocity Profile Pair for Distance and Velocity
+    std::vector<std::pair<double, double>> velocity_profile_; // Velocity profile over time (mm/s)
+
+
 };
 
 #endif // SPRINGMASSCONTROLDEMO_HPP

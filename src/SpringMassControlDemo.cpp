@@ -319,7 +319,7 @@ int8_t SpringMassControlDemo::get_direction() const {
     return direction_;
 }
 
-MotionState SpringMassControlDemo::get_motion_state() const {
+SpringMassControlDemo::MotionState SpringMassControlDemo::get_motion_state() const {
     return motion_state_;
 }
 
