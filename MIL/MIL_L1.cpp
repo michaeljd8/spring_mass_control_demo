@@ -53,6 +53,9 @@ void run_extend_simulation(PlantModel& plant, SpringMassControlDemo& controller,
     int steps = 0;
     double control_velocity = controller.get_control_velocity();
     double target_distance = controller.get_approach_distance() - controller.get_approach_offset();
+    
+    // Set the controller to extend mode
+    controller.start_extend();
 
     while (plant.get_position() < target_distance && steps < max_steps) {
         double mass_position = plant.get_position();
@@ -79,6 +82,9 @@ void run_extend_simulation(PlantModel& plant, SpringMassControlDemo& controller,
 void run_retract_simulation(PlantModel& plant, SpringMassControlDemo& controller, std::vector<DataPoint>& log, int max_steps, double time_offset = 0.0) {
     int steps = 0;
     double control_velocity = controller.get_control_velocity();
+
+    // Set the controller to retract mode
+    controller.start_retract();
 
     while (controller.get_motion_state() != MotionState::Idle && steps < max_steps) {
         double mass_position = plant.get_position();
@@ -135,7 +141,6 @@ int main() {
 
     // ===== RETRACT PHASE =====
     std::cout << "\nStarting RETRACT phase...\n";
-    controller.start_retract();
 
     // Continue simulation for retract (append to same log for continuous data)
     double time_offset = log.empty() ? 0.0 : log.back().time + controller.get_sampling_time();
@@ -158,7 +163,7 @@ int main() {
 
     // ===== EXTEND PHASE (Closed Loop) =====
     std::cout << "\nStarting EXTEND phase (Closed Loop)...\n";
-    controller_closed.start_extend();
+
     run_extend_simulation(plant, controller_closed, log, max_steps);
     std::cout << "Extend completed at position: " << plant.get_position() << " mm\n";
     std::cout << "Extend completed at velocity: " << plant.get_velocity() << " mm/s\n";
