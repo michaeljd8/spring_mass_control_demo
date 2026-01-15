@@ -79,7 +79,7 @@ MIL Level 1 will not be used to optimize the gains of the controller; it is pure
 The MIL Level 2 test will test the implementation of the state machine for the system. 
 
 There will be the following states:
-- **Idle**: System is idle and waiting for command at home position.
+- **Home**: System is idle and waiting for command at home position.
 - **Extend**: System is extending to target distance.
 - **Final_Velocity**: System is maintaining target velocity at target distance.
 - **Retract**: System is retracting to home position.
@@ -93,7 +93,7 @@ flowchart TD
     A[Start] --> B[Initialize Controller]
     B --> C
     subgraph State Machine
-        C[Ready]
+        C[Home]
         D[Extend]
         E[Final Velocity]
         F[Retract]
