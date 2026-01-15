@@ -107,6 +107,53 @@ void run_retract_simulation(PlantModel& plant, SpringMassControlDemo& controller
     }
 }
 
+// Function to simulate actuation cycle (extend + retract)
+void run_actuation_cycle(PlantModel& plant, SpringMassControlDemo& controller, std::vector<DataPoint>& log, int max_steps) {
+    int steps = 0;
+    
+    // Create time variable
+    double time = 0.0;
+
+    // Start extend phase
+    controller.start_extend();
+
+    // Extend loop
+    while (controller.get_motion_state() != MotionState::At_Final_Distance && steps < max_steps) {
+        double mass_position = plant.get_position();
+        double mass_velocity = plant.get_velocity();
+        double dt = controller.get_sampling_time();
+
+        controller.velocity_control(mass_position, mass_velocity);
+        plant.update(controller.get_control_velocity(), dt);
+
+        time += dt;
+        log.push_back({ time, controller.get_drive_position(), controller.get_control_velocity(), mass_position, mass_velocity });
+        ++steps;
+    }
+
+    // Start retract phase
+    controller.start_retract();
+
+    // Retract loop
+    while (controller.get_motion_state() != MotionState::Home && steps < max_steps) {
+        double mass_position = plant.get_position();
+        double mass_velocity = plant.get_velocity();
+        double dt = controller.get_sampling_time();
+
+        controller.velocity_control(mass_position, mass_velocity);
+        plant.update(controller.get_control_velocity(), dt);
+
+        time += dt;
+        log.push_back({ time, controller.get_drive_position(), controller.get_control_velocity(), mass_position, mass_velocity });
+        ++steps;
+    }
+
+    if (steps >= max_steps) {
+        std::cerr << "Warning: reached max steps (" << max_steps << ") before completing actuation cycle.\n";
+    }
+}
+
+
 int main() {
     // Create PlantModel with light mass and stiff spring for responsive dynamics
     PlantModel plant(0.1, 100.0, 1.0);
@@ -127,54 +174,24 @@ int main() {
     // Set maximum simulation steps to avoid infinite loops
     const int max_steps = 20000;
 
-    // Create time variable
-    double time = 0.0;
-
     // Container to store data for graphing
     std::vector<DataPoint> log;
 
-    // Start extend phase
-    controller.start_extend();
-    
-    // main loop for extend
-    while (controller.get_motion_state() != MotionState::At_Final_Distance) {
-        // Read mass position and velocity from plant
-        double mass_position = plant.get_position();
-        double mass_velocity = plant.get_velocity();
-        double dt = controller.get_sampling_time();
-
-        controller.velocity_control(mass_position, mass_velocity);
-        plant.update(controller.get_control_velocity(), dt);
-
-        // increment time
-        time += dt;
-        
-        // Log data
-        log.push_back({ time, controller.get_drive_position(), controller.get_control_velocity(), mass_position, mass_velocity });
-    }
-
-    // Start retract phase
-    controller.start_retract();
-
-    // main loop for retract
-    while (controller.get_motion_state() != MotionState::Home) {
-        // Read mass position and velocity from plant
-        double mass_position = plant.get_position();
-        double mass_velocity = plant.get_velocity();
-        double dt = controller.get_sampling_time();
-
-        controller.velocity_control(mass_position, mass_velocity);
-        plant.update(controller.get_control_velocity(), dt);
-
-        // increment time
-        time += dt;
-
-        // Log data
-        log.push_back({ time, controller.get_drive_position(), controller.get_control_velocity(), mass_position, mass_velocity });
-    }
+    // Run actuation cycle (extend + retract)
+    run_actuation_cycle(plant, controller, log, max_steps);
 
     // Save open loop data to CSV
     save_to_csv(log, "MIL1_open_loop_simulation.csv");
+
+    // Set P only control for closed loop simulation
+    controller.set_pid_gains(4.0, 0.0, 0.0);
+
+    // Clear log
+    log.clear();
+
+    // Run actuation cycle (extend + retract)
+    run_actuation_cycle(plant, controller, log, max_steps);
+
     save_to_csv(log, "MIL1_closed_loop_simulation.csv");
 
     return 0;
