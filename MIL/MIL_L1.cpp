@@ -7,52 +7,49 @@
 
 #include "PlantModel.hpp"
 #include "SpringMassControlDemo.hpp"
+#include "save_to_csv.hpp"
 #include <iostream>
-#include <fstream>
 #include <cmath>
 #include <vector>
-
-// Include util for saving CSV
-#include "utils/save_to_csv.hpp"
 
 // Type alias for cleaner MotionState access
 using MotionState = SpringMassControlDemo::MotionState;
 
-// Data point type
-struct DataPoint {
-    double time;
-    double drive_position;
-    double drive_velocity;
-    double mass_position;
-    double mass_velocity;
+// Log data structure using vectors for CSV export
+struct LogData {
+    std::vector<double> time;
+    std::vector<double> drive_position;
+    std::vector<double> drive_velocity;
+    std::vector<double> mass_position;
+    std::vector<double> mass_velocity;
+    
+    void clear() {
+        time.clear();
+        drive_position.clear();
+        drive_velocity.clear();
+        mass_position.clear();
+        mass_velocity.clear();
+    }
+    
+    void add(double t, double dp, double dv, double mp, double mv) {
+        time.push_back(t);
+        drive_position.push_back(dp);
+        drive_velocity.push_back(dv);
+        mass_position.push_back(mp);
+        mass_velocity.push_back(mv);
+    }
+    
+    bool save(const std::string& filename) const {
+        return save_columns_to_csv(
+            {time, drive_position, drive_velocity, mass_position, mass_velocity},
+            filename,
+            "time,drive_position,drive_velocity,mass_position,mass_velocity"
+        );
+    }
 };
 
-// Function to save log data to CSV file
-void save_to_csv(const std::vector<DataPoint>& log, const std::string& filename) {
-    std::ofstream file(filename);
-    if (!file.is_open()) {
-        std::cerr << "Error: Could not open file " << filename << " for writing.\n";
-        return;
-    }
-
-    // Write CSV header
-    file << "time,drive_position,drive_velocity,mass_position,mass_velocity\n";
-
-    // Write data rows
-    for (const auto& point : log) {
-        file << point.time << ","
-             << point.drive_position << ","
-             << point.drive_velocity << ","
-             << point.mass_position << ","
-             << point.mass_velocity << "\n";
-    }
-
-    file.close();
-    std::cout << "Data saved to " << filename << "\n";
-}
-
 // Function to simulate actuation cycle (extend + retract)
-void run_actuation_cycle(PlantModel& plant, SpringMassControlDemo& controller, std::vector<DataPoint>& log, int max_steps) {
+void run_actuation_cycle(PlantModel& plant, SpringMassControlDemo& controller, LogData& log, int max_steps) {
     int steps = 0;
     
     // Create time variable
@@ -71,7 +68,7 @@ void run_actuation_cycle(PlantModel& plant, SpringMassControlDemo& controller, s
         plant.update(controller.get_control_velocity(), dt);
 
         time += dt;
-        log.push_back({ time, controller.get_drive_position(), controller.get_control_velocity(), mass_position, mass_velocity });
+        log.add(time, controller.get_drive_position(), controller.get_control_velocity(), mass_position, mass_velocity);
         ++steps;
     }
 
@@ -88,7 +85,7 @@ void run_actuation_cycle(PlantModel& plant, SpringMassControlDemo& controller, s
         plant.update(controller.get_control_velocity(), dt);
 
         time += dt;
-        log.push_back({ time, controller.get_drive_position(), controller.get_control_velocity(), mass_position, mass_velocity });
+        log.add(time, controller.get_drive_position(), controller.get_control_velocity(), mass_position, mass_velocity);
         ++steps;
     }
 
@@ -119,13 +116,14 @@ int main() {
     const int max_steps = 20000;
 
     // Container to store data for graphing
-    std::vector<DataPoint> log;
+    LogData log;
 
     // Run actuation cycle (extend + retract)
     run_actuation_cycle(plant, controller, log, max_steps);
 
     // Save open loop data to CSV
-    save_to_csv(log, "MIL1_open_loop_simulation.csv");
+    log.save("MIL1_open_loop_simulation.csv");
+    std::cout << "Data saved to MIL1_open_loop_simulation.csv\n";
 
     // Set P only control for closed loop simulation
     controller.set_pid_gains(4.0, 0.0, 0.0);
@@ -136,7 +134,8 @@ int main() {
     // Run actuation cycle (extend + retract)
     run_actuation_cycle(plant, controller, log, max_steps);
 
-    save_to_csv(log, "MIL1_closed_loop_simulation.csv");
+    log.save("MIL1_closed_loop_simulation.csv");
+    std::cout << "Data saved to MIL1_closed_loop_simulation.csv\n";
 
     return 0;
 }
