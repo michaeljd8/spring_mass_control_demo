@@ -21,6 +21,7 @@ public:
         Final_Velocity,
         At_Final_Distance,
         Retracting,
+        Manual_Stop,
         Error
     };
 
@@ -31,6 +32,9 @@ public:
                         double approach_offset = 2.0, // mm
                         double travel_velocity = 80.0, // mm/s
                         double acceleration = 200.0); // mm/s^2
+
+    // Manual stop function to halt motion immediately
+    void manual_stop();
 
     // Closed Loop Control based on current mass position and velocity
     void velocity_control(double mass_position, double mass_velocity);
