@@ -5,12 +5,15 @@
  * SpringMassControlDemo to manage the control logic.
  */
 
-#include "../PlantModel/PlantModel.hpp"
-#include "../src/SpringMassControlDemo.hpp"
+#include "PlantModel.hpp"
+#include "SpringMassControlDemo.hpp"
 #include <iostream>
 #include <fstream>
 #include <cmath>
 #include <vector>
+
+// Include util for saving CSV
+#include "utils/save_to_csv.hpp"
 
 // Type alias for cleaner MotionState access
 using MotionState = SpringMassControlDemo::MotionState;

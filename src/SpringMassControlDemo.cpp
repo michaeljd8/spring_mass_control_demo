@@ -48,6 +48,12 @@ SpringMassControlDemo::SpringMassControlDemo(double final_velocity,
     // create_velocity_profile();
 }
 
+// Read mass position sensor function
+// This function is virtual so that it can be overridden for either the plant model or the HAL
+double SpringMassControlDemo::read_mass_position() {
+    return mass_position_;
+}
+
 // Closed Loop Control based on current mass position and velocity
 // Uses Ruckig for real-time S-curve trajectory generation with PID control
 void SpringMassControlDemo::velocity_control(double mass_position, double mass_velocity) {
