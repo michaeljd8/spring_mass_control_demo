@@ -16,7 +16,7 @@ public:
 
     // Motion state enum for tracking extend/retract state
     enum class MotionState : uint8_t {
-        Idle,
+        Home,
         Extending,
         Final_Velocity,
         At_Final_Distance,
@@ -113,7 +113,7 @@ private:
 
     // Internal State Variables
     int8_t direction_ = 1;  // +1 = extend, -1 = retract
-    MotionState motion_state_ = MotionState::Idle;  // Current motion state
+    MotionState motion_state_ = MotionState::Home;  // Current motion state
     double control_velocity_; // Current set drive velocity (mm/s)
     double drive_position_; // Measured drive position after control (mm)
     double mass_position_; // Measured mass position (mm)

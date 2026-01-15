@@ -82,7 +82,7 @@ void SpringMassControlDemo::velocity_control(double mass_position, double mass_v
             motion_state_ = MotionState::Final_Velocity;
         } else if (motion_state_ == MotionState::Retracting) {
             desired_velocity = 0.0;  // Stop after retract
-            motion_state_ = MotionState::Idle;
+            motion_state_ = MotionState::Home;
         }
     }
 
@@ -154,7 +154,7 @@ void SpringMassControlDemo::reset_trajectory() {
     ruckig_input_.target_acceleration[0] = 0.0;
     
     // Reset motion state
-    motion_state_ = MotionState::Idle;
+    motion_state_ = MotionState::Home;
 }
 
 void SpringMassControlDemo::start_extend() {

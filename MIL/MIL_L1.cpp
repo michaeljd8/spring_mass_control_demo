@@ -78,7 +78,7 @@ void run_extend_simulation(PlantModel& plant, SpringMassControlDemo& controller,
     }
 }
 
-// Function to run retract simulation - stops when motion state becomes Idle
+// Function to run retract simulation - stops when motion state becomes Home
 void run_retract_simulation(PlantModel& plant, SpringMassControlDemo& controller, std::vector<DataPoint>& log, int max_steps, double time_offset = 0.0) {
     int steps = 0;
     double control_velocity = controller.get_control_velocity();
@@ -86,7 +86,7 @@ void run_retract_simulation(PlantModel& plant, SpringMassControlDemo& controller
     // Set the controller to retract mode
     controller.start_retract();
 
-    while (controller.get_motion_state() != MotionState::Idle && steps < max_steps) {
+    while (controller.get_motion_state() != MotionState::Home && steps < max_steps) {
         double mass_position = plant.get_position();
         double mass_velocity = plant.get_velocity();
         double dt = controller.get_sampling_time();
@@ -157,7 +157,7 @@ int main() {
     controller.start_retract();
 
     // main loop for retract
-    while (controller.get_motion_state() != MotionState::Idle) {
+    while (controller.get_motion_state() != MotionState::Home) {
         // Read mass position and velocity from plant
         double mass_position = plant.get_position();
         double mass_velocity = plant.get_velocity();
