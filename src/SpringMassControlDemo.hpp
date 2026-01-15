@@ -7,7 +7,7 @@ It will create a desired velocity profile based on user inputs and apply a close
 #define SPRINGMASSCONTROLDEMO_HPP
 
 #include <vector>
-#include <utility> 
+#include <utility>
 #include <memory>
 #include <ruckig/ruckig.hpp>
 
@@ -18,7 +18,9 @@ public:
     enum class MotionState : uint8_t {
         Idle,
         Extending,
-        Retracting
+        Final_Velocity,
+        Retracting,
+        Error
     };
 
     // Constructor with default parameters
