@@ -115,6 +115,14 @@ flowchart TD
 
     end
 ```
+
+### MIL Level 3
+
+MIL Level 3 with focus on creating the main loop for the system controller, rather than having the MIL test handle the loop. The main loop will be responsible for calling the appropriate functions in the controller and plant model to achieve the desired behavior.
+For this the interface layer will be added to the project. 
+
+
+
 ## Build and Run
 
 ### Prerequisites

@@ -56,7 +56,21 @@ double SpringMassControlDemo::read_mass_position() {
 
 void SpringMassControlDemo::set_motor_velocity(double drive_velocity, int8_t direction) {}
 
+// Manual stop function to halt motion immediately
+void SpringMassControlDemo::manual_stop() {
+    // Set control velocity to zero to stop motion
+    control_velocity_ = 0.0;
+    // Update motion state to Manual_Stop
+    motion_state_ = MotionState::Manual_Stop;
 
+    // Update Ruckig input to reflect immediate stop
+    ruckig_input_.current_position[0] = drive_position_;
+    ruckig_input_.current_velocity[0] = 0.0;
+    ruckig_input_.current_acceleration[0] = 0.0;
+
+    // Reset PID
+    reset_pid();
+}
 
 // Closed Loop Control based on current mass position and velocity
 // Uses Ruckig for real-time S-curve trajectory generation with PID control

@@ -83,6 +83,12 @@ target_link_libraries(test_velocity_controller GTest::GTest GTest::Main Threads:
 add_test(NAME VelocityControllerTest COMMAND test_velocity_controller)
 add_dependencies(test_velocity_controller clean_csv)
 
+# Add test for manual_stop
+add_executable(test_manual_stop tests/test_manual_stop.cpp src/SpringMassControlDemo.cpp)
+target_link_libraries(test_manual_stop GTest::GTest GTest::Main Threads::Threads ruckig)
+add_test(NAME ManualStopTest COMMAND test_manual_stop)
+add_dependencies(test_manual_stop clean_csv)
+
 # Add MIL Level 1 test
 add_executable(MIL_1_test MIL/MIL_L1.cpp PlantModel/PlantModel.cpp src/SpringMassControlDemo.cpp)
 target_link_libraries(MIL_1_test ruckig)
