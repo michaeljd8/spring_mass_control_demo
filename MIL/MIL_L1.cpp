@@ -48,65 +48,6 @@ void save_to_csv(const std::vector<DataPoint>& log, const std::string& filename)
     std::cout << "Data saved to " << filename << "\n";
 }
 
-// Function to run extend simulation - stops when mass reaches approach distance
-void run_extend_simulation(PlantModel& plant, SpringMassControlDemo& controller, std::vector<DataPoint>& log, int max_steps, double time_offset = 0.0) {
-    int steps = 0;
-    double control_velocity = controller.get_control_velocity();
-    double target_distance = controller.get_approach_distance() - controller.get_approach_offset();
-    
-    // Set the controller to extend mode
-    controller.start_extend();
-
-    while (plant.get_position() < target_distance && steps < max_steps) {
-        double mass_position = plant.get_position();
-        double mass_velocity = plant.get_velocity();
-        double dt = controller.get_sampling_time();
-
-        controller.velocity_control(mass_position, mass_velocity);
-        control_velocity = controller.get_control_velocity();
-        plant.update(control_velocity, dt);
-
-        double drive_position = controller.get_drive_position();
-        double time = time_offset + steps * dt;
-        log.push_back({ time, drive_position, control_velocity, mass_position, mass_velocity });
-
-        ++steps;
-    }
-
-    if (steps >= max_steps) {
-        std::cerr << "Warning: reached max steps (" << max_steps << ") before completing extend.\n";
-    }
-}
-
-// Function to run retract simulation - stops when motion state becomes Home
-void run_retract_simulation(PlantModel& plant, SpringMassControlDemo& controller, std::vector<DataPoint>& log, int max_steps, double time_offset = 0.0) {
-    int steps = 0;
-    double control_velocity = controller.get_control_velocity();
-
-    // Set the controller to retract mode
-    controller.start_retract();
-
-    while (controller.get_motion_state() != MotionState::Home && steps < max_steps) {
-        double mass_position = plant.get_position();
-        double mass_velocity = plant.get_velocity();
-        double dt = controller.get_sampling_time();
-
-        controller.velocity_control(mass_position, mass_velocity);
-        control_velocity = controller.get_control_velocity();
-        plant.update(control_velocity, dt);
-
-        double drive_position = controller.get_drive_position();
-        double time = time_offset + steps * dt;
-        log.push_back({ time, drive_position, control_velocity, mass_position, mass_velocity });
-
-        ++steps;
-    }
-
-    if (steps >= max_steps) {
-        std::cerr << "Warning: reached max steps (" << max_steps << ") before completing retract.\n";
-    }
-}
-
 // Function to simulate actuation cycle (extend + retract)
 void run_actuation_cycle(PlantModel& plant, SpringMassControlDemo& controller, std::vector<DataPoint>& log, int max_steps) {
     int steps = 0;
