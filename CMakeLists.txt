@@ -9,8 +9,11 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Include directories
+include_directories(${CMAKE_SOURCE_DIR})  # Project root for relative includes
 include_directories(PlantModel)
 include_directories(src)
+include_directories(utils)
+include_directories(MIL)
 
 # Ensure Ruckig include directory is added to the include paths
 if(ruckig_FOUND)
@@ -85,3 +88,9 @@ add_executable(MIL_1_test MIL/MIL_L1.cpp PlantModel/PlantModel.cpp src/SpringMas
 target_link_libraries(MIL_1_test ruckig)
 add_test(NAME MIL_Level1_Test COMMAND MIL_1_test)
 add_dependencies(MIL_1_test clean_csv)
+
+# Add MIL Level 2 test
+add_executable(MIL_2_test MIL/MIL_L2.cpp PlantModel/PlantModel.cpp src/SpringMassControlDemo.cpp)
+target_link_libraries(MIL_2_test ruckig)
+add_test(NAME MIL_Level2_Test COMMAND MIL_2_test)
+add_dependencies(MIL_2_test clean_csv)

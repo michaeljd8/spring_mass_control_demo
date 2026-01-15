@@ -82,10 +82,15 @@ There will be the following states:
 - **Home**: System is idle and waiting for command at home position.
 - **Extend**: System is extending to target distance.
 - **Final_Velocity**: System is maintaining target velocity at target distance.
+- **At_Final_Distance**: System has reached target distance and is holding position.
 - **Retract**: System is retracting to home position.
 - **Error**: System has encountered an error.
 
 The state machine will be implemented in the main loop and will be tested in MIL Level 2 to ensure the transitions between states are working correctly. The main loop will use MIL Level 1 implementation as a starting point for the design. 
+
+MIL L1 handles the interfacing between the plant model and the controller within a simulation while loop. For MIL L2, the following function will be added to the `SpringMassControlDemo` class:
+- `read_mass_position()`: Reads the position of the mass.
+- `set_motor_velocity(double drive_velocity, double direction)`: Sets the motor velocity and direction.
 
 ### main loop flow
 ```mermaid
@@ -96,14 +101,17 @@ flowchart TD
         C[Home]
         D[Extend]
         E[Final Velocity]
+        H[At Final Distance]
         F[Retract]
-        G[Error]
+        G[Error - From Any State]
 
         C -->|Start Signal| D
         D -->|Target Distance| E
-        E -->|Final Distance| F
-
+        E -->|Final Distance| H
+        H -->|Reached Final Distance| F
         F --> C
+
+        G --> |Reset| C
 
     end
 ```
