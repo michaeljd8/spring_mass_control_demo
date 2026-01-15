@@ -33,6 +33,18 @@ public:
                         double travel_velocity = 80.0, // mm/s
                         double acceleration = 200.0); // mm/s^2
 
+    // Main update function for the state machine
+    void update();
+
+    // Handlers for state machine
+    void handle_home();
+    void handle_extending();
+    void handle_final_velocity();
+    void handle_at_final_distance();
+    void handle_retracting();
+    void handle_manual_stop();
+    void handle_error();
+
     // Manual stop function to halt motion immediately
     void manual_stop();
 
@@ -109,6 +121,8 @@ protected:
     * Virtual so derived classes can override for plant model or HAL
     */
     virtual double read_mass_position();
+
+    virtual double read_mass_velocity();
 
     virtual void set_motor_velocity(double drive_velocity, int8_t direction);
 
