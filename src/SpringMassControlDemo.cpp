@@ -54,7 +54,15 @@ double SpringMassControlDemo::read_mass_position() {
     return mass_position_;
 }
 
-void SpringMassControlDemo::set_motor_velocity(double drive_velocity, int8_t direction) {}
+void SpringMassControlDemo::set_motor_velocity(double drive_velocity, int8_t direction) {
+    // Base implementation does nothing
+    // Derived classes should override to set actual motor velocity from plant or HAL
+}
+
+void SpringMassControlDemo::read_manual_stop_input() {
+    // Base implementation: no hardware, assume stop not pressed
+    // Derived classes override to read actual hardware input
+}
 
 // Manual stop function to halt motion immediately
 void SpringMassControlDemo::manual_stop() {

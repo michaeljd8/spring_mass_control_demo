@@ -106,12 +106,13 @@ public:
     
 protected:
     /*
-    * Read mass position sensor function
     * Virtual so derived classes can override for plant model or HAL
     */
     virtual double read_mass_position();
 
     virtual void set_motor_velocity(double drive_velocity, int8_t direction);
+
+    virtual void read_manual_stop_input();
 
 private:
 
