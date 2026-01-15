@@ -62,7 +62,7 @@ void run_extend_simulation(PlantModel& plant, SpringMassControlDemo& controller,
         double mass_velocity = plant.get_velocity();
         double dt = controller.get_sampling_time();
 
-        controller.velocity_control(control_velocity, mass_position, mass_velocity);
+        controller.velocity_control(mass_position, mass_velocity);
         control_velocity = controller.get_control_velocity();
         plant.update(control_velocity, dt);
 
@@ -91,7 +91,7 @@ void run_retract_simulation(PlantModel& plant, SpringMassControlDemo& controller
         double mass_velocity = plant.get_velocity();
         double dt = controller.get_sampling_time();
 
-        controller.velocity_control(control_velocity, mass_position, mass_velocity);
+        controller.velocity_control(mass_position, mass_velocity);
         control_velocity = controller.get_control_velocity();
         plant.update(control_velocity, dt);
 

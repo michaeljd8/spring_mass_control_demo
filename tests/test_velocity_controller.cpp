@@ -59,7 +59,7 @@ TEST_F(VelocityControllerTest, ProportionalControlOnly) {
     double mass_velocity = 0.0;
     
     // First call to get initial desired velocity from Ruckig
-    controller.velocity_control(0.0, mass_position, mass_velocity);
+    controller.velocity_control(mass_position, mass_velocity);
     double control_vel_1 = controller.get_control_velocity();
     
     // With Kp=1 and mass_velocity=0, error = desired_velocity - 0 = desired_velocity
@@ -71,12 +71,12 @@ TEST_F(VelocityControllerTest, ProportionalControlOnly) {
     // With higher mass velocity (closer to desired), error is smaller
     controller.reset_trajectory();
     controller.set_pid_gains(0.0, 0.0, 0.0); // Zero gains first
-    controller.velocity_control(0.0, mass_position, 0.0);
+    controller.velocity_control(0.0, mass_position);
     double control_vel_no_pid = controller.get_control_velocity();
     
     controller.reset_trajectory();
     controller.set_pid_gains(1.0, 0.0, 0.0); // With proportional gain
-    controller.velocity_control(0.0, mass_position, 0.0);
+    controller.velocity_control(0.0, mass_position);
     double control_vel_with_pid = controller.get_control_velocity();
     
     // With Kp > 0 and positive error (mass not moving), control should be higher
@@ -92,13 +92,13 @@ TEST_F(VelocityControllerTest, HighKpIncreasesControlVelocity) {
     
     // First test with low Kp
     controller.set_pid_gains(0.5, 0.0, 0.0);
-    controller.velocity_control(0.0, mass_position, mass_velocity);
+    controller.velocity_control(mass_position, mass_velocity);
     double control_vel_low_kp = controller.get_control_velocity();
     
     // Reset and test with high Kp
     controller.reset_trajectory();
     controller.set_pid_gains(5.0, 0.0, 0.0);
-    controller.velocity_control(0.0, mass_position, mass_velocity);
+    controller.velocity_control(mass_position, mass_velocity);
     double control_vel_high_kp = controller.get_control_velocity();
     
     // Higher Kp should result in higher control velocity (more aggressive correction)
@@ -113,7 +113,7 @@ TEST_F(VelocityControllerTest, ControlVelocityCanBeNegative) {
     double mass_position = 0.0;
     double mass_velocity = 200.0; // Much higher than desired, negative error
     
-    controller.velocity_control(0.0, mass_position, mass_velocity);
+    controller.velocity_control(mass_position, mass_velocity);
     
     // Note: Current implementation does NOT clamp control velocity to [0, MAX]
     // This test documents the current behavior - control velocity can be negative
@@ -134,7 +134,7 @@ TEST_F(VelocityControllerTest, IntegralAccumulation) {
     // Call velocity_control multiple times to accumulate integral
     double prev_control_vel = 0.0;
     for (int i = 0; i < 50; ++i) {
-        controller.velocity_control(0.0, mass_position, mass_velocity);
+        controller.velocity_control(mass_position, mass_velocity);
         double current_control_vel = controller.get_control_velocity();
         
         // Control velocity should increase due to integral accumulation
@@ -159,7 +159,7 @@ TEST_F(VelocityControllerTest, ResetPIDClearsState) {
     
     // Accumulate some integral error by running multiple iterations
     for (int i = 0; i < 100; ++i) {
-        controller.velocity_control(0.0, mass_position, mass_velocity);
+        controller.velocity_control(mass_position, mass_velocity);
     }
     double vel_before_reset = controller.get_control_velocity();
     
@@ -168,7 +168,7 @@ TEST_F(VelocityControllerTest, ResetPIDClearsState) {
     
     // After reset, the integral contribution should be cleared
     // The next call will have zero integral contribution
-    controller.velocity_control(0.0, mass_position, mass_velocity);
+    controller.velocity_control(mass_position, mass_velocity);
     double vel_after_reset = controller.get_control_velocity();
     
     // With integral reset, the control velocity should be different
@@ -185,15 +185,15 @@ TEST_F(VelocityControllerTest, DerivativeAction) {
     double mass_position = 0.0;
     
     // First call with mass velocity = 0 (error = desired - 0)
-    controller.velocity_control(0.0, mass_position, 0.0);
+    controller.velocity_control(mass_position, 0.0);
     double control1 = controller.get_control_velocity();
     
     // Second call with mass velocity = 5 (error decreasing if desired > 5)
-    controller.velocity_control(0.0, mass_position, 5.0);
+    controller.velocity_control(mass_position, 5.0);
     double control2 = controller.get_control_velocity();
     
     // Third call with mass velocity = 0 again (error increasing)
-    controller.velocity_control(0.0, mass_position, 0.0);
+    controller.velocity_control(mass_position, 0.0);
     double control3 = controller.get_control_velocity();
     
     // The derivative term should cause different outputs when error changes
@@ -214,7 +214,7 @@ TEST_F(VelocityControllerTest, RuckigTrajectoryStartsAccelerating) {
     
     // Run trajectory for some iterations
     for (int i = 0; i < 50; ++i) {
-        controller.velocity_control(0.0, mass_position, mass_velocity);
+        controller.velocity_control(mass_position, mass_velocity);
         velocities.push_back(controller.get_control_velocity());
     }
     
@@ -235,7 +235,7 @@ TEST_F(VelocityControllerTest, RuckigTrajectoryReachesTargetVelocity) {
     // Run trajectory until completion (or max iterations)
     double control_vel = 0.0;
     for (int i = 0; i < 2000; ++i) {
-        controller.velocity_control(0.0, mass_position, mass_velocity);
+        controller.velocity_control(mass_position, mass_velocity);
         control_vel = controller.get_control_velocity();
         
         // Update simulated mass position based on control velocity
@@ -252,7 +252,7 @@ TEST_F(VelocityControllerTest, InternalStateUpdated) {
     double mass_vel = 45.0;
     double control_vel = 50.0;
     
-    controller.velocity_control(control_vel, mass_pos, mass_vel);
+    controller.velocity_control(mass_pos, mass_vel);
 
     EXPECT_DOUBLE_EQ(controller.get_mass_position(), mass_pos);
     EXPECT_DOUBLE_EQ(controller.get_mass_velocity(), mass_vel);
@@ -267,7 +267,7 @@ TEST_F(VelocityControllerTest, DrivePositionIntegrates) {
     
     // Run several iterations
     for (int i = 0; i < 100; ++i) {
-        controller.velocity_control(0.0, 0.0, 0.0);
+        controller.velocity_control(0.0, 0.0);
     }
     
     double final_drive_pos = controller.get_drive_position();
@@ -288,7 +288,7 @@ TEST_F(VelocityControllerTest, FullPIDTracking) {
     
     // Simulate tracking - mass velocity gradually approaches control velocity
     for (int i = 0; i < 500; ++i) {
-        controller.velocity_control(0.0, mass_position, mass_velocity);
+        controller.velocity_control(mass_position, mass_velocity);
         double control_vel = controller.get_control_velocity();
         control_outputs.push_back(control_vel);
         
@@ -325,7 +325,7 @@ TEST_F(VelocityControllerTest, ZeroGainsOutputsDesiredVelocity) {
     double mass_position = 0.0;
     double mass_velocity = 0.0;
     
-    controller.velocity_control(0.0, mass_position, mass_velocity);
+    controller.velocity_control(mass_position, mass_velocity);
     double control_vel_1 = controller.get_control_velocity();
     
     // With zero PID gains and zero mass velocity:
@@ -340,7 +340,7 @@ TEST_F(VelocityControllerTest, ZeroGainsOutputsDesiredVelocity) {
     
     // Run again with mass velocity matching the control velocity
     controller.reset_trajectory();
-    controller.velocity_control(0.0, mass_position, control_vel_1);
+    controller.velocity_control(mass_position, control_vel_1);
     double control_vel_2 = controller.get_control_velocity();
     
     // With matching velocities, error = 0, so control = desired
@@ -354,7 +354,7 @@ TEST_F(VelocityControllerTest, ResetTrajectoryReinitializes) {
     
     // Run some iterations
     for (int i = 0; i < 100; ++i) {
-        controller.velocity_control(0.0, 0.0, 0.0);
+        controller.velocity_control(0.0, 0.0);
     }
     
     double pos_before_reset = controller.get_drive_position();

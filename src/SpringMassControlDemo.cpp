@@ -50,9 +50,8 @@ SpringMassControlDemo::SpringMassControlDemo(double final_velocity,
 
 // Closed Loop Control based on current mass position and velocity
 // Uses Ruckig for real-time S-curve trajectory generation with PID control
-void SpringMassControlDemo::velocity_control(double control_velocity, double mass_position, double mass_velocity) {
+void SpringMassControlDemo::velocity_control(double mass_position, double mass_velocity) {
     // Update internal state variables
-    control_velocity_ = control_velocity;
     mass_position_ = mass_position;
     mass_velocity_ = mass_velocity;
 

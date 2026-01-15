@@ -31,7 +31,7 @@ public:
                         double acceleration = 200.0); // mm/s^2
 
     // Closed Loop Control based on current mass position and velocity
-    void velocity_control(double drive_velocity, double mass_position, double mass_velocity);
+    void velocity_control(double mass_position, double mass_velocity);
 
     // Setters for User Defined Parameters
     void set_final_velocity(double final_velocity);
