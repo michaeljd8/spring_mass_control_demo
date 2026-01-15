@@ -19,6 +19,7 @@ public:
         Idle,
         Extending,
         Final_Velocity,
+        At_Final_Distance,
         Retracting,
         Error
     };

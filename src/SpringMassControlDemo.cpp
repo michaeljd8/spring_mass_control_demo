@@ -79,10 +79,17 @@ void SpringMassControlDemo::velocity_control(double mass_position, double mass_v
     if (result == ruckig::Result::Finished) {
         if (motion_state_ == MotionState::Extending) {
             desired_velocity = final_velocity_;  // Maintain final velocity after extend
+            motion_state_ = MotionState::Final_Velocity;
         } else if (motion_state_ == MotionState::Retracting) {
             desired_velocity = 0.0;  // Stop after retract
             motion_state_ = MotionState::Idle;
         }
+    }
+
+    // If mass position has reach or exceed final distance, stop motion and set to At_Final_Distance state
+    if (mass_position_ >= final_distance_ && motion_state_ == MotionState::Final_Velocity) {
+        desired_velocity = 0.0; // Stop motion
+        motion_state_ = MotionState::At_Final_Distance;
     }
 
     // Calculate velocity error (desired - actual)
