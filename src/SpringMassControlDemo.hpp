@@ -21,8 +21,6 @@ public:
         Retracting
     };
 
-    using MotionState = SpringMassControlDemo::MotionState;
-
     // Constructor with default parameters
     SpringMassControlDemo(double final_velocity = 10.0, // mm/s
                         double approach_distance = 55.0, // mm
