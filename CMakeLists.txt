@@ -80,10 +80,6 @@ target_link_libraries(test_velocity_controller GTest::GTest GTest::Main Threads:
 add_test(NAME VelocityControllerTest COMMAND test_velocity_controller)
 add_dependencies(test_velocity_controller clean_csv)
 
-# Add Python visualization script as a test
-find_package(Python3 REQUIRED)
-add_test(NAME PlotPlantTest COMMAND ${Python3_EXECUTABLE} tests/PlantModel_test_vis.py)
-
 # Add MIL Level 1 test
 add_executable(MIL_1_test MIL/MIL_L1.cpp PlantModel/PlantModel.cpp src/SpringMassControlDemo.cpp)
 target_link_libraries(MIL_1_test ruckig)
