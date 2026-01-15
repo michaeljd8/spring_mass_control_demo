@@ -129,7 +129,6 @@ int main() {
     // Container to store data for graphing
     std::vector<DataPoint> log;
 
-    // ===== EXTEND PHASE =====
     std::cout << "Starting EXTEND phase...\n";
     controller.start_extend();
     

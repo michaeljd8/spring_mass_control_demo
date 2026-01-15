@@ -13,6 +13,7 @@ It will create a desired velocity profile based on user inputs and apply a close
 
 class SpringMassControlDemo {
 public:
+
     // Motion state enum for tracking extend/retract state
     enum class MotionState : uint8_t {
         Idle,
@@ -40,7 +41,7 @@ public:
     void set_approach_offset(double approach_offset);
     void set_travel_velocity(double travel_velocity);
     void set_acceleration(double acceleration);
-    void set_approach_distance(double approach_distance); // Setter for approach distance
+    void set_approach_distance(double approach_distance); 
 
     // Setters for PID Controller Gains
     void set_pid_gains(double kp, double ki, double kd);
@@ -51,8 +52,8 @@ public:
     void reset_trajectory(); // Reset Ruckig trajectory to initial state
 
     // Direction and motion control
-    void start_extend();    // Configure and start extend motion (user parameters)
-    void start_retract();   // Configure and start retract motion (max parameters)
+    void start_extend();    // Configure and start extend motion with user parameters
+    void start_retract();   // Configure and start retract motion with max parameters
     void set_direction(int8_t direction);  // +1 = extend, -1 = retract
     int8_t get_direction() const;
     MotionState get_motion_state() const;

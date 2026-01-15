@@ -119,114 +119,7 @@ void SpringMassControlDemo::velocity_control(double mass_position, double mass_v
     time_counter_++;
 }
 
-// Setters for User Defined Parameters with validation for limits
-void SpringMassControlDemo::set_final_velocity(double final_velocity) {
-    if (final_velocity < MIN_VELOCITY) {
-        final_velocity_ = MIN_VELOCITY;
-        std::cerr << "Out of Bounds: Final velocity set to minimum limit." << std::endl;
-    } else if (final_velocity > MAX_VELOCITY) {
-        final_velocity_ = MAX_VELOCITY;
-        std::cerr << "Out of Bounds: Final velocity set to maximum limit." << std::endl;
-    } else {
-        final_velocity_ = final_velocity;
-    }
-}
 
-void SpringMassControlDemo::set_approach_distance(double approach_distance) {
-    if (approach_distance < MIN_DISTANCE) {
-        approach_distance_ = MIN_DISTANCE;
-        std::cerr << "Out of Bounds: Approach distance set to minimum limit." << std::endl;
-    } else if (approach_distance > MAX_DISTANCE) {
-        approach_distance_ = MAX_DISTANCE;
-        std::cerr << "Out of Bounds: Approach distance set to maximum limit." << std::endl;
-    } else {
-        approach_distance_ = approach_distance;
-    }
-}
-
-void SpringMassControlDemo::set_final_distance(double final_distance) {
-    if (final_distance < MIN_DISTANCE) {
-        final_distance_ = MIN_DISTANCE;
-        std::cerr << "Out of Bounds: Final distance set to minimum limit." << std::endl;
-    } else if (final_distance > MAX_DISTANCE) {
-        final_distance_ = MAX_DISTANCE;
-        std::cerr << "Out of Bounds: Final distance set to maximum limit." << std::endl;
-    } else {
-        final_distance_ = final_distance;
-    }
-}
-
-void SpringMassControlDemo::set_approach_offset(double approach_offset) {
-    if (approach_offset < 0.0) {
-        approach_offset_ = 0.0;
-        std::cerr << "Out of Bounds: Approach offset set to minimum limit of 0." << std::endl;
-    } else if (approach_offset > approach_distance_) {
-        approach_offset_ = approach_distance_;
-        std::cerr << "Out of Bounds: Approach offset set to target distance limit." << std::endl;
-    } else {
-        approach_offset_ = approach_offset;
-    }
-}
-
-void SpringMassControlDemo::set_travel_velocity(double travel_velocity) {
-    if (travel_velocity < MIN_VELOCITY) {
-        travel_velocity_ = MIN_VELOCITY;
-        std::cerr << "Out of Bounds: Travel velocity set to minimum limit." << std::endl;
-    } else if (travel_velocity > MAX_VELOCITY) {
-        travel_velocity_ = MAX_VELOCITY;
-        std::cerr << "Out of Bounds: Travel velocity set to maximum limit." << std::endl;
-    } else {
-        travel_velocity_ = travel_velocity;
-    }
-}
-
-void SpringMassControlDemo::set_acceleration(double acceleration) {
-    if (acceleration < MIN_ACCELERATION) {
-        acceleration_ = MIN_ACCELERATION;
-        std::cerr << "Out of Bounds: Acceleration set to minimum limit." << std::endl;
-    } else if (acceleration > MAX_ACCELERATION) {
-        acceleration_ = MAX_ACCELERATION;
-        std::cerr << "Out of Bounds: Acceleration set to maximum limit." << std::endl;
-    } else {
-        acceleration_ = acceleration;
-    }
-}
-
-void SpringMassControlDemo::set_target_distance(double target_distance) {
-    if (target_distance < MIN_DISTANCE) {
-        approach_distance_ = MIN_DISTANCE;
-        std::cerr << "Out of Bounds: Target distance set to minimum limit." << std::endl;
-    } else if (target_distance > MAX_DISTANCE) {
-        approach_distance_ = MAX_DISTANCE;
-        std::cerr << "Out of Bounds: Target distance set to maximum limit." << std::endl;
-    } else {
-        approach_distance_ = target_distance;
-    }
-}
-
-// Setters for PID Controller Gains
-void SpringMassControlDemo::set_pid_gains(double kp, double ki, double kd) {
-    kp_ = (kp >= 0.0) ? kp : 0.0;
-    ki_ = (ki >= 0.0) ? ki : 0.0;
-    kd_ = (kd >= 0.0) ? kd : 0.0;
-}
-
-void SpringMassControlDemo::set_kp(double kp) {
-    kp_ = (kp >= 0.0) ? kp : 0.0;
-}
-
-void SpringMassControlDemo::set_ki(double ki) {
-    ki_ = (ki >= 0.0) ? ki : 0.0;
-}
-
-void SpringMassControlDemo::set_kd(double kd) {
-    kd_ = (kd >= 0.0) ? kd : 0.0;
-}
-
-void SpringMassControlDemo::reset_pid() {
-    integral_error_ = 0.0;
-    previous_error_ = 0.0;
-}
 
 void SpringMassControlDemo::reset_trajectory() {
     // Reset internal state variables
@@ -371,6 +264,114 @@ double SpringMassControlDemo::get_mass_velocity() const {
     return mass_velocity_;
 }
 
+// Setters for User Defined Parameters with validation for limits
+void SpringMassControlDemo::set_final_velocity(double final_velocity) {
+    if (final_velocity < MIN_VELOCITY) {
+        final_velocity_ = MIN_VELOCITY;
+        std::cerr << "Out of Bounds: Final velocity set to minimum limit." << std::endl;
+    } else if (final_velocity > MAX_VELOCITY) {
+        final_velocity_ = MAX_VELOCITY;
+        std::cerr << "Out of Bounds: Final velocity set to maximum limit." << std::endl;
+    } else {
+        final_velocity_ = final_velocity;
+    }
+}
+
+void SpringMassControlDemo::set_approach_distance(double approach_distance) {
+    if (approach_distance < MIN_DISTANCE) {
+        approach_distance_ = MIN_DISTANCE;
+        std::cerr << "Out of Bounds: Approach distance set to minimum limit." << std::endl;
+    } else if (approach_distance > MAX_DISTANCE) {
+        approach_distance_ = MAX_DISTANCE;
+        std::cerr << "Out of Bounds: Approach distance set to maximum limit." << std::endl;
+    } else {
+        approach_distance_ = approach_distance;
+    }
+}
+
+void SpringMassControlDemo::set_final_distance(double final_distance) {
+    if (final_distance < MIN_DISTANCE) {
+        final_distance_ = MIN_DISTANCE;
+        std::cerr << "Out of Bounds: Final distance set to minimum limit." << std::endl;
+    } else if (final_distance > MAX_DISTANCE) {
+        final_distance_ = MAX_DISTANCE;
+        std::cerr << "Out of Bounds: Final distance set to maximum limit." << std::endl;
+    } else {
+        final_distance_ = final_distance;
+    }
+}
+
+void SpringMassControlDemo::set_approach_offset(double approach_offset) {
+    if (approach_offset < 0.0) {
+        approach_offset_ = 0.0;
+        std::cerr << "Out of Bounds: Approach offset set to minimum limit of 0." << std::endl;
+    } else if (approach_offset > approach_distance_) {
+        approach_offset_ = approach_distance_;
+        std::cerr << "Out of Bounds: Approach offset set to target distance limit." << std::endl;
+    } else {
+        approach_offset_ = approach_offset;
+    }
+}
+
+void SpringMassControlDemo::set_travel_velocity(double travel_velocity) {
+    if (travel_velocity < MIN_VELOCITY) {
+        travel_velocity_ = MIN_VELOCITY;
+        std::cerr << "Out of Bounds: Travel velocity set to minimum limit." << std::endl;
+    } else if (travel_velocity > MAX_VELOCITY) {
+        travel_velocity_ = MAX_VELOCITY;
+        std::cerr << "Out of Bounds: Travel velocity set to maximum limit." << std::endl;
+    } else {
+        travel_velocity_ = travel_velocity;
+    }
+}
+
+void SpringMassControlDemo::set_acceleration(double acceleration) {
+    if (acceleration < MIN_ACCELERATION) {
+        acceleration_ = MIN_ACCELERATION;
+        std::cerr << "Out of Bounds: Acceleration set to minimum limit." << std::endl;
+    } else if (acceleration > MAX_ACCELERATION) {
+        acceleration_ = MAX_ACCELERATION;
+        std::cerr << "Out of Bounds: Acceleration set to maximum limit." << std::endl;
+    } else {
+        acceleration_ = acceleration;
+    }
+}
+
+void SpringMassControlDemo::set_target_distance(double target_distance) {
+    if (target_distance < MIN_DISTANCE) {
+        approach_distance_ = MIN_DISTANCE;
+        std::cerr << "Out of Bounds: Target distance set to minimum limit." << std::endl;
+    } else if (target_distance > MAX_DISTANCE) {
+        approach_distance_ = MAX_DISTANCE;
+        std::cerr << "Out of Bounds: Target distance set to maximum limit." << std::endl;
+    } else {
+        approach_distance_ = target_distance;
+    }
+}
+
+// Setters for PID Controller Gains
+void SpringMassControlDemo::set_pid_gains(double kp, double ki, double kd) {
+    kp_ = (kp >= 0.0) ? kp : 0.0;
+    ki_ = (ki >= 0.0) ? ki : 0.0;
+    kd_ = (kd >= 0.0) ? kd : 0.0;
+}
+
+void SpringMassControlDemo::set_kp(double kp) {
+    kp_ = (kp >= 0.0) ? kp : 0.0;
+}
+
+void SpringMassControlDemo::set_ki(double ki) {
+    ki_ = (ki >= 0.0) ? ki : 0.0;
+}
+
+void SpringMassControlDemo::set_kd(double kd) {
+    kd_ = (kd >= 0.0) ? kd : 0.0;
+}
+
+void SpringMassControlDemo::reset_pid() {
+    integral_error_ = 0.0;
+    previous_error_ = 0.0;
+}
 
 // ====== Legacy Velocity Profile Generation (S-Curve) ======
 // Create S-Curve Velocity Profile based on user defined parameters
