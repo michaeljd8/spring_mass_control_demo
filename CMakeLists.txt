@@ -88,3 +88,9 @@ add_executable(MIL_1_test MIL/MIL_L1.cpp PlantModel/PlantModel.cpp src/SpringMas
 target_link_libraries(MIL_1_test ruckig)
 add_test(NAME MIL_Level1_Test COMMAND MIL_1_test)
 add_dependencies(MIL_1_test clean_csv)
+
+# Add MIL Level 2 test
+add_executable(MIL_2_test MIL/MIL_L2.cpp PlantModel/PlantModel.cpp src/SpringMassControlDemo.cpp)
+target_link_libraries(MIL_2_test ruckig)
+add_test(NAME MIL_Level2_Test COMMAND MIL_2_test)
+add_dependencies(MIL_2_test clean_csv)
