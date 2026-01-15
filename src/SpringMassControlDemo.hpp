@@ -107,6 +107,8 @@ protected:
     */
     virtual double read_mass_position();
 
+    virtual double set_motor_velocity(double drive_velocity, int8_t direction);
+
 private:
 
     // User Defined Parameters

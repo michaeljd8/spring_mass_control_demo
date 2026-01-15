@@ -54,6 +54,10 @@ double SpringMassControlDemo::read_mass_position() {
     return mass_position_;
 }
 
+double SpringMassControlDemo::set_motor_velocity(double drive_velocity, int8_t direction) {
+    return control_velocity_;
+}
+
 // Closed Loop Control based on current mass position and velocity
 // Uses Ruckig for real-time S-curve trajectory generation with PID control
 void SpringMassControlDemo::velocity_control(double mass_position, double mass_velocity) {
@@ -94,6 +98,7 @@ void SpringMassControlDemo::velocity_control(double mass_position, double mass_v
 
     // If mass position has reached or exceeded final distance, stop motion and set to At_Final_Distance state
     if (mass_position_ >= final_distance_ && motion_state_ == MotionState::Final_Velocity) {
+        desired_velocity = 0.0;
         motion_state_ = MotionState::At_Final_Distance;
     }
 
