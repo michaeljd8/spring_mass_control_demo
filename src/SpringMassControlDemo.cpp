@@ -48,13 +48,111 @@ SpringMassControlDemo::SpringMassControlDemo(double final_velocity,
     // create_velocity_profile();
 }
 
+// Main update function for the state machine
+void SpringMassControlDemo::update() {
+    switch (motion_state_) {
+        case MotionState::Home:
+            handle_home();
+            break;
+
+        case MotionState::Extending:
+            handle_extending();
+            break;
+
+        case MotionState::Final_Velocity:
+            handle_final_velocity();
+            break;
+
+        case MotionState::At_Final_Distance:
+            handle_at_final_distance();
+            break;
+
+        case MotionState::Retracting:
+            handle_retracting();
+            break;
+
+        case MotionState::Manual_Stop:
+            handle_manual_stop();
+            break;
+
+        case MotionState::Error:
+            handle_error();
+            break;
+    }
+}
+
+// Handlers for state machine
+void SpringMassControlDemo::handle_home() {
+    // In Home state, wait for command to start extending
+    // No action needed here for now
+}
+
+void SpringMassControlDemo::handle_extending() {
+    mass_position_ = read_mass_position();
+    mass_velocity_ = read_mass_velocity();
+    velocity_control(mass_position_, mass_velocity_);
+    set_motor_velocity(control_velocity_, direction_);
+    // State transition handled in velocity_control() when Ruckig finishes
+}
+
+void SpringMassControlDemo::handle_final_velocity() {
+    mass_position_ = read_mass_position();
+    mass_velocity_ = read_mass_velocity();
+    velocity_control(mass_position_, mass_velocity_);
+    set_motor_velocity(control_velocity_, direction_);
+    // State transition to At_Final_Distance handled in velocity_control()
+}
+
+void SpringMassControlDemo::handle_at_final_distance() {
+    // Hold position, wait for retract command
+    control_velocity_ = 0.0;
+    set_motor_velocity(0.0, direction_);
+    // User calls start_retract() to transition to Retracting state
+}
+
+void SpringMassControlDemo::handle_retracting() {
+    mass_position_ = read_mass_position();
+    mass_velocity_ = read_mass_velocity();
+    velocity_control(mass_position_, mass_velocity_);
+    set_motor_velocity(control_velocity_, direction_);
+    // State transition to Home handled in velocity_control() when Ruckig finishes
+}
+
+void SpringMassControlDemo::handle_manual_stop() {
+    // Hold at zero velocity, wait for reset command
+    control_velocity_ = 0.0;
+    set_motor_velocity(0.0, direction_);
+    // User calls reset_trajectory() to return to Home state
+}
+
+void SpringMassControlDemo::handle_error() {
+    // Safe state: stop all motion
+    control_velocity_ = 0.0;
+    set_motor_velocity(0.0, direction_);
+    // User must call reset_trajectory() to recover
+}
+
 // Read mass position sensor function
 // This function is virtual so that it can be overridden for either the plant model or the HAL
 double SpringMassControlDemo::read_mass_position() {
     return mass_position_;
 }
 
-void SpringMassControlDemo::set_motor_velocity(double drive_velocity, int8_t direction) {}
+// Read mass velocity sensor function
+// Virtual so derived classes can override for plant model or HAL
+double SpringMassControlDemo::read_mass_velocity() {
+    return mass_velocity_;
+}
+
+void SpringMassControlDemo::set_motor_velocity(double drive_velocity, int8_t direction) {
+    // Base implementation does nothing
+    // Derived classes should override to set actual motor velocity from plant or HAL
+}
+
+void SpringMassControlDemo::read_manual_stop_input() {
+    // Base implementation: no hardware, assume stop not pressed
+    // Derived classes override to read actual hardware input
+}
 
 // Manual stop function to halt motion immediately
 void SpringMassControlDemo::manual_stop() {
@@ -81,38 +179,36 @@ void SpringMassControlDemo::velocity_control(double mass_position, double mass_v
 
     // Use Ruckig to compute the next trajectory state
     ruckig::Result result = ruckig_->update(ruckig_input_, ruckig_output_);
-    
-    double desired_velocity;
-    
+
     if (result == ruckig::Result::Working || result == ruckig::Result::Finished) {
         // Get desired velocity from Ruckig trajectory
-        desired_velocity = ruckig_output_.new_velocity[0];
+        desired_velocity_ = ruckig_output_.new_velocity[0];
         
         // Pass the output state as input for the next iteration
         ruckig_output_.pass_to_input(ruckig_input_);
     } else {
         // Trajectory calculation failed, use appropriate velocity based on direction
         if (direction_ > 0) {
-            desired_velocity = final_velocity_;
+            desired_velocity_ = final_velocity_;
         } else {
-            desired_velocity = 0.0;  // Stop when retracting
+            desired_velocity_ = 0.0;  // Stop when retracting
         }
     }
 
     // If trajectory is finished, handle based on motion state
     if (result == ruckig::Result::Finished) {
         if (motion_state_ == MotionState::Extending) {
-            desired_velocity = final_velocity_;  // Maintain final velocity after extend
+            desired_velocity_ = final_velocity_;  // Maintain final velocity after extend
             motion_state_ = MotionState::Final_Velocity;
         } else if (motion_state_ == MotionState::Retracting) {
-            desired_velocity = 0.0;  // Stop after retract
+            desired_velocity_ = 0.0;  // Stop after retract
             motion_state_ = MotionState::Home;
         }
     }
 
     // If mass position has reached or exceeded final distance, stop motion and set to At_Final_Distance state
     if (mass_position_ >= final_distance_ && motion_state_ == MotionState::Final_Velocity) {
-        desired_velocity = 0.0;
+        desired_velocity_ = 0.0;
         motion_state_ = MotionState::At_Final_Distance;
         // Exit early to prevent overshoot
         control_velocity_ = 0.0;
@@ -120,8 +216,8 @@ void SpringMassControlDemo::velocity_control(double mass_position, double mass_v
     }
 
     // Calculate velocity error (desired - actual)
-    double error = desired_velocity - mass_velocity_;
-    
+    double error = desired_velocity_ - mass_velocity_;
+
     // Proportional term
     double p_term = kp_ * error;
     
@@ -146,7 +242,7 @@ void SpringMassControlDemo::velocity_control(double mass_position, double mass_v
     double pid_output = p_term + i_term + d_term;
     
     // Control velocity is the desired velocity plus PID correction
-    control_velocity_ = desired_velocity + pid_output;
+    control_velocity_ = desired_velocity_ + pid_output;
 
     // Track drive position by integrating control velocity
     drive_position_ += control_velocity_ * SAMPLING_TIME;
@@ -290,6 +386,9 @@ double SpringMassControlDemo::get_control_velocity() const {
 }
 double SpringMassControlDemo::get_drive_position() const {
     return drive_position_;
+}
+double SpringMassControlDemo::get_desired_velocity() const {
+    return desired_velocity_;
 }
 double SpringMassControlDemo::get_mass_position() const {
     return mass_position_;

@@ -33,6 +33,18 @@ public:
                         double travel_velocity = 80.0, // mm/s
                         double acceleration = 200.0); // mm/s^2
 
+    // Main update function for the state machine
+    void update();
+
+    // Handlers for state machine
+    void handle_home();
+    void handle_extending();
+    void handle_final_velocity();
+    void handle_at_final_distance();
+    void handle_retracting();
+    void handle_manual_stop();
+    void handle_error();
+
     // Manual stop function to halt motion immediately
     void manual_stop();
 
@@ -90,6 +102,7 @@ public:
     double get_control_velocity() const;
     double get_drive_position() const;
     double get_drive_velocity() const;
+    double get_desired_velocity() const;
     double get_mass_position() const;
     double get_mass_velocity() const;
 
@@ -106,12 +119,15 @@ public:
     
 protected:
     /*
-    * Read mass position sensor function
     * Virtual so derived classes can override for plant model or HAL
     */
     virtual double read_mass_position();
 
+    virtual double read_mass_velocity();
+
     virtual void set_motor_velocity(double drive_velocity, int8_t direction);
+
+    virtual void read_manual_stop_input();
 
 private:
 
@@ -128,6 +144,7 @@ private:
     MotionState motion_state_ = MotionState::Home;  // Current motion state
     double control_velocity_; // Current set drive velocity (mm/s)
     double drive_position_; // Measured drive position after control (mm)
+    double desired_velocity_; // Desired postion from the velocity controller (mm/s)
     double mass_position_; // Measured mass position (mm)
     double mass_velocity_; // Calculated from mass_position_ (mm/s)
     double time_counter_; // Time counter for tracking simulation time
