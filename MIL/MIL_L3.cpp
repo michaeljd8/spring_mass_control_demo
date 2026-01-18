@@ -63,6 +63,7 @@ struct LogData {
     std::vector<double> time;
     std::vector<double> drive_position;
     std::vector<double> drive_velocity;
+    std::vector<double> desired_velocity;
     std::vector<double> mass_position;
     std::vector<double> mass_velocity;
     std::vector<int> motion_state;
@@ -71,15 +72,17 @@ struct LogData {
         time.clear();
         drive_position.clear();
         drive_velocity.clear();
+        desired_velocity.clear();
         mass_position.clear();
         mass_velocity.clear();
         motion_state.clear();
     }
-    
-    void add(double t, double dp, double dv, double mp, double mv, int state) {
+
+    void add(double t, double dp, double dv, double des_v, double mp, double mv, int state) {
         time.push_back(t);
         drive_position.push_back(dp);
         drive_velocity.push_back(dv);
+        desired_velocity.push_back(des_v);
         mass_position.push_back(mp);
         mass_velocity.push_back(mv);
         motion_state.push_back(state);
@@ -89,9 +92,9 @@ struct LogData {
         // Convert motion_state to double for CSV export
         std::vector<double> state_double(motion_state.begin(), motion_state.end());
         return save_columns_to_csv(
-            {time, drive_position, drive_velocity, mass_position, mass_velocity, state_double},
+            {time, drive_position, drive_velocity, desired_velocity, mass_position, mass_velocity, state_double},
             filename,
-            "time,drive_position,drive_velocity,mass_position,mass_velocity,motion_state"
+            "time,drive_position,drive_velocity,desired_velocity,mass_position,mass_velocity,motion_state"
         );
     }
 };
@@ -186,9 +189,10 @@ int main() {
             log.add(total_time_s, 
                     controller.get_drive_position(), 
                     controller.get_control_velocity(), 
+                    controller.get_desired_velocity(), // Added missing desired velocity argument
                     controller.get_mass_position(), 
                     controller.get_current_mass_velocity(),
-                    static_cast<int>(current_state));
+                    static_cast<int>(controller.get_motion_state()));
 
             ++step;
             total_time_s += dt;
@@ -209,6 +213,7 @@ int main() {
             log.add(total_time_s, 
                     controller.get_drive_position(), 
                     controller.get_control_velocity(), 
+                    controller.get_desired_velocity(), // Added missing desired velocity argument
                     controller.get_mass_position(), 
                     controller.get_current_mass_velocity(),
                     static_cast<int>(controller.get_motion_state()));
@@ -246,6 +251,7 @@ int main() {
             log.add(total_time_s, 
                     controller.get_drive_position(), 
                     controller.get_control_velocity(), 
+                    controller.get_desired_velocity(), // Added missing desired velocity argument
                     controller.get_mass_position(), 
                     controller.get_current_mass_velocity(),
                     static_cast<int>(current_state));

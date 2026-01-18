@@ -102,6 +102,7 @@ public:
     double get_control_velocity() const;
     double get_drive_position() const;
     double get_drive_velocity() const;
+    double get_desired_velocity() const;
     double get_mass_position() const;
     double get_mass_velocity() const;
 
@@ -143,6 +144,7 @@ private:
     MotionState motion_state_ = MotionState::Home;  // Current motion state
     double control_velocity_; // Current set drive velocity (mm/s)
     double drive_position_; // Measured drive position after control (mm)
+    double desired_velocity_; // Desired postion from the velocity controller (mm/s)
     double mass_position_; // Measured mass position (mm)
     double mass_velocity_; // Calculated from mass_position_ (mm/s)
     double time_counter_; // Time counter for tracking simulation time

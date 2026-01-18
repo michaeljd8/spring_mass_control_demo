@@ -10,10 +10,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Include directories
 include_directories(${CMAKE_SOURCE_DIR})  # Project root for relative includes
-include_directories(PlantModel)
-include_directories(src)
-include_directories(utils)
-include_directories(MIL)
+include_directories(${CMAKE_SOURCE_DIR}/PlantModel)
+include_directories(${CMAKE_SOURCE_DIR}/src)
+include_directories(${CMAKE_SOURCE_DIR}/utils)
+include_directories(${CMAKE_SOURCE_DIR}/MIL)
 
 # Ensure Ruckig include directory is added to the include paths
 if(ruckig_FOUND)

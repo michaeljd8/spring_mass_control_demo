@@ -30,6 +30,7 @@ data = pd.read_csv(csv_file)
 time = data['time']
 drive_position = data['drive_position']
 drive_velocity = data['drive_velocity']
+desired_velocity = data['desired_velocity']
 mass_position = data['mass_position']
 mass_velocity = data['mass_velocity']
 motion_state = data['motion_state']
@@ -73,6 +74,7 @@ axs[0].axhline(y=80, color='red', linestyle='--', alpha=0.3, label='Final Distan
 # Plot 2: Velocities over time (middle)
 axs[1].plot(time, drive_velocity, label='Drive Velocity', color='blue', alpha=0.7)
 axs[1].plot(time, mass_velocity, label='Mass Velocity', color='orange', alpha=0.7)
+axs[1].plot(time, desired_velocity, label='Desired Velocity', color='green', linestyle='--', alpha=0.7)
 axs[1].set_title('Velocities Over Time')
 axs[1].set_xlabel('Time (s)')
 axs[1].set_ylabel('Velocity (mm/s)')
