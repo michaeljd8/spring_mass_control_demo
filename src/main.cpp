@@ -125,8 +125,8 @@ int main() {
     std::cout << "Starting SpringMassControlDemo...\n";
 
     double final_velocity = 15.0; // mm/s
-    double approach_distance = 78.0; // mm
-    double final_distance = 80.0; // mm
+    double approach_distance = 2.0; // mm
+    double final_distance = 20.0; // mm
     double approach_offset = 5.0; // mm
     double travel_velocity = 100.0; // mm/s
     double acceleration = 250.0; // mm/s^2

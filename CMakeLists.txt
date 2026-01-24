@@ -106,3 +106,28 @@ add_executable(MIL_3_test MIL/MIL_L3.cpp PlantModel/PlantModel.cpp src/SpringMas
 target_link_libraries(MIL_3_test ruckig)
 add_test(NAME MIL_Level3_Test COMMAND MIL_3_test)
 add_dependencies(MIL_3_test clean_csv)
+
+# ========== Python Bindings (pybind11) ==========
+# Find or fetch pybind11
+find_package(pybind11 QUIET)
+if(NOT pybind11_FOUND)
+    include(FetchContent)
+    FetchContent_Declare(
+        pybind11
+        GIT_REPOSITORY https://github.com/pybind/pybind11.git
+        GIT_TAG v2.11.1
+    )
+    FetchContent_MakeAvailable(pybind11)
+endif()
+
+# Create Python module
+pybind11_add_module(spring_mass_sim 
+    python_bindings/bindings.cpp 
+    PlantModel/PlantModel.cpp 
+    src/SpringMassControlDemo.cpp
+)
+target_link_libraries(spring_mass_sim PRIVATE ruckig)
+target_include_directories(spring_mass_sim PRIVATE 
+    ${CMAKE_SOURCE_DIR}/PlantModel
+    ${CMAKE_SOURCE_DIR}/src
+)
